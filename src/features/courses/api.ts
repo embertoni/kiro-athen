@@ -246,7 +246,7 @@ export function useCourseDetail(
         averageRating: averageRating(ratings),
         reviewCount: ratings.length,
         recentComments: (commentsRes.data ??
-          []) as CourseDetail['recentComments'],
+          []) as unknown as CourseDetail['recentComments'],
         studentCount: enrollRes.count ?? 0,
         firstLessonId,
       };
