@@ -16,6 +16,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/catalog', label: 'Catálogo' },
   { to: '/dashboard', label: 'Painel' },
   { to: '/rooms', label: 'Salas' },
+  { to: '/ranking', label: 'Ranking' },
   { to: '/friends', label: 'Amigos' },
   { to: '/notifications', label: 'Notificações' },
   { to: '/profile', label: 'Perfil' },

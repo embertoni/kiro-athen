@@ -476,7 +476,21 @@ export interface Database {
       notebooks: TableShape<NotebookRow, NotebookInsert, Partial<NotebookRow>>;
       notebook_pages: TableShape<NotebookPageRow, NotebookPageInsert, Partial<NotebookPageRow>>;
     };
-    Views: Record<string, never>;
+    Views: {
+      global_ranking: {
+        Row: {
+          user_id: string;
+          username: string;
+          display_name: string;
+          avatar_url: string | null;
+          xp_global: number;
+          level: number;
+          streak_count: number;
+          position: number;
+        };
+        Relationships: [];
+      };
+    };
     Functions: {
       finalize_attempt: {
         Args: { p_attempt_id: string };
@@ -526,9 +540,27 @@ export interface Database {
         Args: Record<string, never>;
         Returns: boolean;
       };
+      is_active_room_member: {
+        Args: { p_room_id: string };
+        Returns: boolean;
+      };
       username_to_email: {
         Args: { p_username: string };
         Returns: string | null;
+      };
+      friends_course_pac: {
+        Args: { p_course_id: string };
+        Returns: {
+          user_id: string;
+          username: string;
+          display_name: string;
+          avatar_url: string | null;
+          is_self: boolean;
+          correct: number;
+          total: number;
+          pac: number;
+          division: string;
+        }[];
       };
     };
     Enums: {

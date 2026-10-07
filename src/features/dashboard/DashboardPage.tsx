@@ -15,6 +15,8 @@ import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { divisionForPac, levelForXp } from '@/domain/rules';
+import { MedalsPanel } from '@/features/gamification/MedalsPanel';
+import { FriendsCourseRanking } from '@/features/rankings/FriendsCourseRanking';
 import {
   useCourseTrail,
   useDashboardOverview,
@@ -224,6 +226,14 @@ export function DashboardPage() {
           )}
         </section>
       )}
+
+      {/* Friends ranking for the selected course (PAC/division, not global XP) */}
+      {selectedCourseId && (
+        <FriendsCourseRanking courseId={selectedCourseId} />
+      )}
+
+      {/* Medals (server-granted) + streak */}
+      <MedalsPanel userId={userId} streakCount={liveProfile?.streak_count} />
 
       {/* Notebook entry */}
       <section

@@ -11,6 +11,9 @@ import { CatalogPage } from '@/features/courses/CatalogPage';
 import { CreateCoursePage } from '@/features/courses/create/CreateCoursePage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { LessonView } from '@/features/lesson/LessonView';
+import { RoomsListPage } from '@/features/rooms/RoomsListPage';
+import { RoomDetailPage } from '@/features/rooms/RoomDetailPage';
+import { GlobalRankingPage } from '@/features/rankings/GlobalRankingPage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RegisterPage } from '@/features/auth/RegisterPage';
 import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage';
@@ -71,24 +74,9 @@ export default function App() {
                   />
                 }
               />
-              <Route
-                path="/rooms"
-                element={
-                  <PlaceholderPage
-                    title="Salas"
-                    description="Suas salas de estudo (salas)."
-                  />
-                }
-              />
-              <Route
-                path="/rooms/:id"
-                element={
-                  <PlaceholderPage
-                    title="Sala"
-                    description="Mural, missões e desempenho interno da sala."
-                  />
-                }
-              />
+              <Route path="/rooms" element={<RoomsListPage />} />
+              <Route path="/rooms/:id" element={<RoomDetailPage />} />
+              <Route path="/ranking" element={<GlobalRankingPage />} />
               <Route
                 path="/settings"
                 element={

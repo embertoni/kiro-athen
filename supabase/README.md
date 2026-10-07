@@ -25,7 +25,7 @@ supabase db push
 
 ### Option B — SQL editor
 
-Open each file in **filename order** (`0001_` → `0013_`) and run it. Order
+Open each file in **filename order** (`0001_` → `0015_`) and run it. Order
 matters: later migrations reference objects created earlier (FKs, enums,
 functions).
 
@@ -47,6 +47,7 @@ functions).
 | `0012_triggers.sql` | new-user, updated_at, role immutability, featured-medal guard |
 | `0013_seed.sql` | medal catalog (required) + optional demo content |
 | `0014_username_to_email.sql` | `username_to_email()` for login-by-username |
+| `0015_rankings.sql` | `global_ranking` view + `friends_course_pac()` RPC for the gamification rankings (no weekly period) |
 
 ## Server-authoritative functions (`0010`)
 
@@ -64,6 +65,33 @@ functions).
 | `join_room(access_code)` | self-join a room with a valid, active code |
 | `is_admin()` | true when the caller's profile role is `admin` (used by `/crud` RLS) |
 | `username_to_email(username)` | resolves a username to its auth email for login-by-username (SECURITY DEFINER; `0014`) |
+| `friends_course_pac(course_id)` | per-course PAC/division for the caller + their accepted friends, course-context attempts only (SECURITY DEFINER, friends-scoped; `0015`) |
+
+## Rankings (`0015`)
+
+Read-only aggregations over the already-authoritative tables; they compute no
+XP and introduce **no weekly period / reset / scheduled job**:
+
+- **`global_ranking`** (view): all-time leaderboard ordered by `xp_global`
+  (ties broken by `created_at`), restricted to `active` profiles. A plain view
+  inherits the caller's RLS, and `profiles` is readable by any authenticated
+  user, so no `SECURITY DEFINER` is needed.
+- **`friends_course_pac(course_id)`** (function): for the authenticated user,
+  returns the caller plus each accepted friend with their **PAC/division for
+  that course** (course-context attempts only, never room XP). `SECURITY
+  DEFINER` so it can aggregate friends' owner-scoped attempts, but it only ever
+  discloses the caller and their accepted friends, and only the aggregate PAC.
+- **Room ranking** is read directly from `room_members.xp_internal` (RLS already
+  scopes rows to the room's educator and active members); the client sorts by
+  `xp_internal` descending among `status = 'active'` members.
+
+### Room PAC visibility
+
+The `rooms.pac_visibility` column (`members` | `educator_only` | `public`) is a
+**room-level** setting. The educator always sees every member's PAC and each
+student always sees their own; `pac_visibility` controls whether a student can
+also see **other** students' PAC. Per-member PAC visibility is intentionally not
+modeled in the MVP schema — the toggle is room-level.
 
 ### `finalize_attempt` context rules
 
