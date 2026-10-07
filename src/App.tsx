@@ -4,7 +4,6 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { ProtectedRoute } from '@/routes/ProtectedRoute';
 import { AdminRoute } from '@/routes/AdminRoute';
 import { AppShell } from '@/components/layout/AppShell';
-import { PlaceholderPage } from '@/components/layout/PlaceholderPage';
 import { NotFoundPage } from '@/routes/NotFoundPage';
 import { LandingPage } from '@/features/landing/LandingPage';
 import { CatalogPage } from '@/features/courses/CatalogPage';
@@ -14,6 +13,12 @@ import { LessonView } from '@/features/lesson/LessonView';
 import { RoomsListPage } from '@/features/rooms/RoomsListPage';
 import { RoomDetailPage } from '@/features/rooms/RoomDetailPage';
 import { GlobalRankingPage } from '@/features/rankings/GlobalRankingPage';
+import { ProfilePage } from '@/features/profile/ProfilePage';
+import { FriendsPage } from '@/features/friends/FriendsPage';
+import { NotificationsPage } from '@/features/notifications/NotificationsPage';
+import { SettingsPage } from '@/features/settings/SettingsPage';
+import { NotebookPage } from '@/features/notebook/NotebookPage';
+import { CrudPage } from '@/features/crud/CrudPage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RegisterPage } from '@/features/auth/RegisterPage';
 import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage';
@@ -25,9 +30,6 @@ import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage';
  * - Public:        /, /login, /register, /forgot-password, /reset-password
  * - Authenticated: everything under <ProtectedRoute> (wrapped by <AppShell>)
  * - Admin only:    /crud under <AdminRoute> (checks real profile.role==='admin')
- *
- * Pages whose features ship in later tasks use <PlaceholderPage> so the router
- * and guards are fully exercised today.
  */
 export default function App() {
   return (
@@ -47,63 +49,15 @@ export default function App() {
               <Route path="/catalog" element={<CatalogPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/lesson/:id" element={<LessonView />} />
-              <Route
-                path="/profile"
-                element={
-                  <PlaceholderPage
-                    title="Perfil"
-                    description="Seu perfil, medalhas e estatísticas."
-                  />
-                }
-              />
-              <Route
-                path="/profile/:username"
-                element={
-                  <PlaceholderPage
-                    title="Perfil"
-                    description="Perfil público de um usuário."
-                  />
-                }
-              />
-              <Route
-                path="/friends"
-                element={
-                  <PlaceholderPage
-                    title="Amigos"
-                    description="Pedidos de amizade e lista de amigos."
-                  />
-                }
-              />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/profile/:username" element={<ProfilePage />} />
+              <Route path="/friends" element={<FriendsPage />} />
               <Route path="/rooms" element={<RoomsListPage />} />
               <Route path="/rooms/:id" element={<RoomDetailPage />} />
               <Route path="/ranking" element={<GlobalRankingPage />} />
-              <Route
-                path="/settings"
-                element={
-                  <PlaceholderPage
-                    title="Configurações"
-                    description="Preferências da conta."
-                  />
-                }
-              />
-              <Route
-                path="/notebook"
-                element={
-                  <PlaceholderPage
-                    title="Caderno"
-                    description="Seu caderno de anotações."
-                  />
-                }
-              />
-              <Route
-                path="/notifications"
-                element={
-                  <PlaceholderPage
-                    title="Notificações"
-                    description="Suas notificações."
-                  />
-                }
-              />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/notebook" element={<NotebookPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/create" element={<CreateCoursePage />} />
             </Route>
           </Route>
@@ -111,15 +65,7 @@ export default function App() {
           {/* Admin-only route (session + profile.role === 'admin') */}
           <Route element={<AdminRoute />}>
             <Route element={<AppShell />}>
-              <Route
-                path="/crud"
-                element={
-                  <PlaceholderPage
-                    title="CRUD (admin)"
-                    description="Administração de dados da plataforma."
-                  />
-                }
-              />
+              <Route path="/crud" element={<CrudPage />} />
             </Route>
           </Route>
 

@@ -106,15 +106,33 @@ export type CourseStatus = (typeof COURSE_STATUS)[number];
 export const COURSE_VISIBILITY = ['public', 'private'] as const;
 export type CourseVisibility = (typeof COURSE_VISIBILITY)[number];
 
+/**
+ * Notification types. These MIRROR the Postgres `notification_type` enum (the
+ * authority) EXACTLY — keep them byte-for-byte in sync with the SQL migrations
+ * and src/types/database.ts.
+ *   atualizacao_curso  — a course the user is enrolled in was updated/published
+ *   pedido_amizade     — someone sent a friend request
+ *   convite_sala       — the user was invited to / added to a room (sala)
+ *   missao             — a mission was created/updated in a room the user is in
+ *   lembrete_estudo    — a friend sent a "lembrete para estudar" reminder
+ */
 export const NOTIFICATION_TYPES = [
-  'friend_request',
-  'friend_accepted',
-  'room_invite',
-  'course_published',
-  'medal_earned',
-  'level_up',
+  'atualizacao_curso',
+  'pedido_amizade',
+  'convite_sala',
+  'missao',
+  'lembrete_estudo',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
+
+/** pt-BR labels for each notification type (UI display). */
+export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
+  atualizacao_curso: 'Atualização de curso',
+  pedido_amizade: 'Pedido de amizade',
+  convite_sala: 'Convite para sala',
+  missao: 'Missão',
+  lembrete_estudo: 'Lembrete de estudo',
+};
 
 /**
  * Medal rule keys. The SQL layer owns the exact award conditions; these keys let

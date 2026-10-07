@@ -401,6 +401,14 @@ export function useAddMember(roomId: string) {
         .select('*')
         .single();
       if (error) throw error;
+
+      // Best-effort convite_sala notification for the invited member.
+      await supabase
+        .rpc('notify_room_invite', { p_room_id: roomId, p_user_id: profile.id })
+        .then(({ error: nErr }) => {
+          if (nErr) console.error('notify_room_invite failed', nErr);
+        });
+
       return data;
     },
     onSuccess: () => {
@@ -571,6 +579,14 @@ export function useCreateMission(roomId: string) {
         .select('*')
         .single();
       if (error) throw error;
+
+      // Best-effort missao notification for every active room member.
+      await supabase
+        .rpc('notify_room_mission', { p_mission_id: data.id })
+        .then(({ error: nErr }) => {
+          if (nErr) console.error('notify_room_mission failed', nErr);
+        });
+
       return data;
     },
     onSuccess: () => {

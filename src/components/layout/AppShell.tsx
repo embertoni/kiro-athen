@@ -4,6 +4,7 @@ import { BrandMark } from '@/components/brand/BrandMark';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useToast } from '@/components/ui/Toast';
+import { NotificationBell } from '@/features/notifications/NotificationBell';
 
 interface NavItem {
   to: string;
@@ -69,6 +70,7 @@ export function AppShell() {
           <BrandMark size={32} />
         </NavLink>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <NotificationBell />
           {profile && (
             <span style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
               {profile.display_name || profile.username}

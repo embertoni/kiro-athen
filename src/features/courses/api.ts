@@ -472,9 +472,20 @@ export async function saveCourseTree(
 export function useSaveCourse(creatorId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (draft: CourseDraft) => {
+    mutationFn: async (draft: CourseDraft) => {
       if (!creatorId) throw new Error('Sessão expirada. Faça login novamente.');
-      return saveCourseTree(creatorId, draft);
+      // Editing an existing, published course should notify enrolled students.
+      const wasExisting = !!draft.id;
+      const course = await saveCourseTree(creatorId, draft);
+      if (wasExisting && course.status === 'published') {
+        // Best-effort: an atualizacao_curso notification for enrolled students.
+        await supabase
+          .rpc('notify_course_update', { p_course_id: course.id })
+          .then(({ error }) => {
+            if (error) console.error('notify_course_update failed', error);
+          });
+      }
+      return course;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: courseKeys.all });

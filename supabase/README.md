@@ -48,6 +48,7 @@ functions).
 | `0013_seed.sql` | medal catalog (required) + optional demo content |
 | `0014_username_to_email.sql` | `username_to_email()` for login-by-username |
 | `0015_rankings.sql` | `global_ranking` view + `friends_course_pac()` RPC for the gamification rankings (no weekly period) |
+| `0016_notifications_social_account.sql` | `profiles.notification_preferences` column; SECURITY DEFINER notification creators (friend request, room invite, mission, course update, study reminder); `search_profiles()`; soft `deactivate_account()` |
 
 ## Server-authoritative functions (`0010`)
 
@@ -66,6 +67,13 @@ functions).
 | `is_admin()` | true when the caller's profile role is `admin` (used by `/crud` RLS) |
 | `username_to_email(username)` | resolves a username to its auth email for login-by-username (SECURITY DEFINER; `0014`) |
 | `friends_course_pac(course_id)` | per-course PAC/division for the caller + their accepted friends, course-context attempts only (SECURITY DEFINER, friends-scoped; `0015`) |
+| `send_study_reminder(friend_id)` | create a `lembrete_estudo` notification for an accepted friend (`0016`) |
+| `notify_friend_request(friendship_id)` | notify the addressee of a pending friend request (`0016`) |
+| `notify_room_invite(room_id, user_id)` | notify a user the educator added them to a room (`0016`) |
+| `notify_room_mission(mission_id)` | notify every active room member about a mission (`0016`) |
+| `notify_course_update(course_id)` | notify enrolled students the course was updated (`0016`) |
+| `deactivate_account()` | soft-delete: deactivate + anonymize the caller's profile, no hard cascade (`0016`) |
+| `search_profiles(query)` | user search for the friends UI: active profiles matching username/display name (`0016`) |
 
 ## Rankings (`0015`)
 
@@ -150,6 +158,33 @@ correct if the submission matches **any** configured answer. All-or-nothing.
 ```
 Grading: correct if `submitted.sum` equals the expected numeric sum.
 All-or-nothing.
+
+## Notifications, preferences, and account deactivation (`0016`)
+
+Internal notifications are **never inserted directly by the client** — the
+`notifications` RLS (in `0011`) grants recipients `select/update/delete` on their
+own rows but **no insert**. Every notification is created by a `SECURITY
+DEFINER` function that first verifies the caller is entitled to trigger it
+(sent the friend request, educates the room/mission, created the course, is an
+accepted friend). The internal `create_notification()` helper is **not** granted
+to clients; it honors the recipient's opt-out before inserting.
+
+- **`profiles.notification_preferences`** (jsonb): a per-type `{ type: boolean }`
+  map. A missing key means enabled; an explicit `false` suppresses that type.
+- **Study reminder**: `send_study_reminder(friend_id)` → `lembrete_estudo`.
+- **Account deactivation** is a **soft delete**: `deactivate_account()` sets
+  `account_status = 'deactivated'`, scrubs PII (anonymizes username, clears
+  display name/bio/avatar/banner), cancels pending friend requests, and removes
+  the user from active room rosters. It intentionally performs **no hard cascade
+  delete** so attempts, courses, and room history stay intact for data
+  integrity. The client confirms by requiring the user to type their exact
+  username, then signs out.
+
+Client wiring (notification creation points): friend request → `useSendRequest`
+calls `notify_friend_request`; room add-member → `useAddMember` calls
+`notify_room_invite`; mission create → `useCreateMission` calls
+`notify_room_mission`; course edit (published) → `useSaveCourse` calls
+`notify_course_update`.
 
 ## `/crud` and admin access
 

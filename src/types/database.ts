@@ -71,6 +71,8 @@ export interface ProfileRow {
   streak_count: number;
   last_study_date: string | null;
   account_status: AccountStatus;
+  /** Per-type notification toggles: { pedido_amizade: true, ... }. Missing key = enabled. */
+  notification_preferences: Record<string, boolean>;
   created_at: string;
   updated_at: string;
 }
@@ -316,6 +318,7 @@ type ProfileInsert = Opt<
   | 'streak_count'
   | 'last_study_date'
   | 'account_status'
+  | 'notification_preferences'
   | 'created_at'
   | 'updated_at'
 >;
@@ -560,6 +563,40 @@ export interface Database {
           total: number;
           pac: number;
           division: string;
+        }[];
+      };
+      send_study_reminder: {
+        Args: { p_friend_id: string };
+        Returns: string | null;
+      };
+      notify_friend_request: {
+        Args: { p_friendship_id: string };
+        Returns: string | null;
+      };
+      notify_room_invite: {
+        Args: { p_room_id: string; p_user_id: string };
+        Returns: string | null;
+      };
+      notify_room_mission: {
+        Args: { p_mission_id: string };
+        Returns: number;
+      };
+      notify_course_update: {
+        Args: { p_course_id: string };
+        Returns: number;
+      };
+      deactivate_account: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
+      search_profiles: {
+        Args: { p_query: string };
+        Returns: {
+          id: string;
+          username: string;
+          display_name: string;
+          avatar_url: string | null;
+          level: number;
         }[];
       };
     };
