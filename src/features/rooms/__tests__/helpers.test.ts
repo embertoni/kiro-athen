@@ -83,8 +83,12 @@ describe('ranking comparators', () => {
   });
 
   it('compareByXpDesc returns the right sign', () => {
-    expect(compareByXpDesc({ xp: 5, name: 'a' }, { xp: 3, name: 'b' })).toBeLessThan(0);
-    expect(compareByXpDesc({ xp: 3, name: 'a' }, { xp: 5, name: 'b' })).toBeGreaterThan(0);
+    expect(
+      compareByXpDesc({ xp: 5, name: 'a' }, { xp: 3, name: 'b' }),
+    ).toBeLessThan(0);
+    expect(
+      compareByXpDesc({ xp: 3, name: 'a' }, { xp: 5, name: 'b' }),
+    ).toBeGreaterThan(0);
   });
 
   it('orders by PAC desc with name tiebreaker', () => {
@@ -94,7 +98,9 @@ describe('ranking comparators', () => {
       { pac: 50, name: 'Ana' },
     ]);
     expect(sorted.map((r) => r.name)).toEqual(['Ivo', 'Ana', 'Zoe']);
-    expect(compareByPacDesc({ pac: 10, name: 'a' }, { pac: 20, name: 'b' })).toBeGreaterThan(0);
+    expect(
+      compareByPacDesc({ pac: 10, name: 'a' }, { pac: 20, name: 'b' }),
+    ).toBeGreaterThan(0);
   });
 
   it('does not mutate the input array', () => {

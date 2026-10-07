@@ -52,7 +52,9 @@ export function buildFillBlankSubmitted(text: string): FillBlankSubmitted {
   return { text };
 }
 
-export function buildSumAlternativesSubmitted(sum: number): SumAlternativesSubmitted {
+export function buildSumAlternativesSubmitted(
+  sum: number,
+): SumAlternativesSubmitted {
   return { sum };
 }
 

@@ -71,7 +71,9 @@ export function SettingsPage() {
   return (
     <div style={{ display: 'grid', gap: '1.25rem', maxWidth: '42rem' }}>
       <header>
-        <h1 style={{ margin: 0, color: 'var(--brand-purple)' }}>Configurações</h1>
+        <h1 style={{ margin: 0, color: 'var(--brand-purple)' }}>
+          Configurações
+        </h1>
       </header>
 
       <IdentitySection
@@ -175,7 +177,13 @@ function EmailSection({ currentEmail }: { currentEmail: string }) {
 
   return (
     <Card title="E-mail">
-      <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+      <p
+        style={{
+          margin: 0,
+          color: 'var(--color-text-muted)',
+          fontSize: '0.85rem',
+        }}
+      >
         E-mail atual: <strong>{currentEmail || '—'}</strong>
       </p>
       <Input
@@ -343,7 +351,13 @@ function DangerZone({ username }: { username: string }) {
 
   return (
     <Card title="Zona de perigo">
-      <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+      <p
+        style={{
+          margin: 0,
+          color: 'var(--color-text-muted)',
+          fontSize: '0.85rem',
+        }}
+      >
         Desativar sua conta remove seus dados pessoais (nome, bio, avatar) e
         encerra o acesso. Seu histórico de estudo é preservado de forma anônima;
         nada é apagado em cascata.
@@ -377,8 +391,8 @@ function DangerZone({ username }: { username: string }) {
           }
         >
           <p>
-            Para confirmar, digite seu nome de usuário <strong>{username}</strong>{' '}
-            abaixo.
+            Para confirmar, digite seu nome de usuário{' '}
+            <strong>{username}</strong> abaixo.
           </p>
           <Input
             label="Nome de usuário"

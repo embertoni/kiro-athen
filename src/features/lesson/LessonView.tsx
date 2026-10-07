@@ -69,7 +69,8 @@ export function LessonView() {
   const questions = data?.questions ?? [];
 
   const allAnswered = useMemo(
-    () => questions.length > 0 && questions.every((q) => isAnswered(answers[q.id])),
+    () =>
+      questions.length > 0 && questions.every((q) => isAnswered(answers[q.id])),
     [questions, answers],
   );
 
@@ -173,7 +174,13 @@ export function LessonView() {
         </div>
 
         {lessonQuery.isLoading && (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              padding: '2rem',
+            }}
+          >
             <Spinner size={32} />
           </div>
         )}
@@ -194,7 +201,9 @@ export function LessonView() {
               >
                 {data.courseTitle} · {data.module.title}
               </p>
-              <h1 style={{ margin: '0.2rem 0 0', color: 'var(--brand-purple)' }}>
+              <h1
+                style={{ margin: '0.2rem 0 0', color: 'var(--brand-purple)' }}
+              >
                 {data.lesson.title}
               </h1>
             </header>
@@ -216,7 +225,15 @@ export function LessonView() {
                 Esta aula não tem questões.
               </p>
             ) : (
-              <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '1.25rem' }}>
+              <ol
+                style={{
+                  listStyle: 'none',
+                  margin: 0,
+                  padding: 0,
+                  display: 'grid',
+                  gap: '1.25rem',
+                }}
+              >
                 {questions.map((q, index) => (
                   <li key={q.id}>
                     <QuestionItem
@@ -231,7 +248,11 @@ export function LessonView() {
               </ol>
             )}
 
-            {error && <div style={{ marginTop: '1rem' }}><ErrorText>{error}</ErrorText></div>}
+            {error && (
+              <div style={{ marginTop: '1rem' }}>
+                <ErrorText>{error}</ErrorText>
+              </div>
+            )}
 
             <footer
               style={{
@@ -264,7 +285,10 @@ export function LessonView() {
                   <Button variant="ghost" onClick={handleRedo}>
                     Refazer aula
                   </Button>
-                  <Button variant="primary" onClick={() => navigate('/dashboard')}>
+                  <Button
+                    variant="primary"
+                    onClick={() => navigate('/dashboard')}
+                  >
                     Concluir
                   </Button>
                 </>
@@ -308,7 +332,13 @@ interface QuestionItemProps {
 }
 
 /** Renders a single question with its type-specific input. */
-function QuestionItem({ index, question, value, onChange, result }: QuestionItemProps) {
+function QuestionItem({
+  index,
+  question,
+  value,
+  onChange,
+  result,
+}: QuestionItemProps) {
   const disabled = result !== null;
   const header = (
     <p style={{ margin: '0 0 0.5rem', fontWeight: 600 }}>

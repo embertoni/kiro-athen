@@ -7,11 +7,7 @@
  * and the study reminder goes through send_study_reminder (lembrete_estudo).
  */
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type { FriendshipRow, ProfileRow } from '@/types/database';
 import { otherParticipantId } from './helpers';
@@ -70,12 +66,15 @@ export function useFriends(userId: string | undefined) {
       if (error) throw error;
 
       const rows = (data ?? []) as unknown as EdgeRow[];
-      const buckets: FriendsBuckets = { friends: [], incoming: [], outgoing: [] };
+      const buckets: FriendsBuckets = {
+        friends: [],
+        incoming: [],
+        outgoing: [],
+      };
 
       for (const r of rows) {
         const otherId = otherParticipantId(uid, r);
-        const other =
-          otherId === r.requester_id ? r.requester : r.addressee;
+        const other = otherId === r.requester_id ? r.requester : r.addressee;
         const edge: FriendEdge = { friendship: r, other };
 
         if (r.status === 'accepted') {
@@ -146,8 +145,10 @@ export function useSendRequest(userId: string | undefined) {
 
       let row: FriendshipRow;
       if (existing) {
-        if (existing.status === 'accepted') throw new Error('Vocês já são amigos.');
-        if (existing.status === 'pending') throw new Error('Já existe um pedido pendente.');
+        if (existing.status === 'accepted')
+          throw new Error('Vocês já são amigos.');
+        if (existing.status === 'pending')
+          throw new Error('Já existe um pedido pendente.');
         // Reset a terminal row; make the current user the requester.
         const { data, error } = await supabase
           .from('friendships')

@@ -26,21 +26,40 @@ export function FriendsCourseRanking({
   if (!courseId) return null;
 
   const rows = sortByPacDesc(
-    (query.data ?? []).map((r) => ({ ...r, name: r.displayName || r.username })),
+    (query.data ?? []).map((r) => ({
+      ...r,
+      name: r.displayName || r.username,
+    })),
   );
 
   return (
     <section style={{ display: 'grid', gap: '0.6rem' }}>
       <h2 style={{ fontSize: '1.1rem', margin: 0 }}>{title}</h2>
-      <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+      <p
+        style={{
+          margin: 0,
+          fontSize: '0.8rem',
+          color: 'var(--color-text-muted)',
+        }}
+      >
         Comparação de desempenho (PAC) entre você e seus amigos neste curso.
       </p>
 
       {query.isLoading && <Spinner size={24} />}
-      {query.isError && <ErrorText>Não foi possível carregar o ranking de amigos.</ErrorText>}
+      {query.isError && (
+        <ErrorText>Não foi possível carregar o ranking de amigos.</ErrorText>
+      )}
 
       {query.data && (
-        <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '0.35rem' }}>
+        <ol
+          style={{
+            listStyle: 'none',
+            margin: 0,
+            padding: 0,
+            display: 'grid',
+            gap: '0.35rem',
+          }}
+        >
           {rows.map((r, i) => {
             const d = pacDisplay(r.pac, r.division);
             return (
@@ -53,16 +72,33 @@ export function FriendsCourseRanking({
                   padding: '0.5rem 0.8rem',
                   borderRadius: 'var(--radius-md)',
                   border: `1px solid ${r.isSelf ? 'var(--brand-purple)' : 'var(--color-border)'}`,
-                  background: r.isSelf ? 'rgba(91, 42, 134, 0.07)' : 'var(--color-surface)',
+                  background: r.isSelf
+                    ? 'rgba(91, 42, 134, 0.07)'
+                    : 'var(--color-surface)',
                 }}
               >
-                <span style={{ width: '1.5rem', textAlign: 'center', fontWeight: 700, color: 'var(--brand-purple)' }}>
+                <span
+                  style={{
+                    width: '1.5rem',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    color: 'var(--brand-purple)',
+                  }}
+                >
                   {i + 1}
                 </span>
                 <strong style={{ flex: 1, minWidth: 0 }}>
                   {r.name}
                   {r.isSelf && (
-                    <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}> (você)</span>
+                    <span
+                      style={{
+                        color: 'var(--color-text-muted)',
+                        fontWeight: 400,
+                      }}
+                    >
+                      {' '}
+                      (você)
+                    </span>
                   )}
                 </strong>
                 <span
@@ -77,7 +113,9 @@ export function FriendsCourseRanking({
                 >
                   {d.division}
                 </span>
-                <strong style={{ width: '3.5rem', textAlign: 'right' }}>{d.label}</strong>
+                <strong style={{ width: '3.5rem', textAlign: 'right' }}>
+                  {d.label}
+                </strong>
               </li>
             );
           })}

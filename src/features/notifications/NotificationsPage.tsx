@@ -12,11 +12,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
 import { useAuth } from '@/features/auth/AuthProvider';
 import type { NotificationRow } from '@/types/database';
-import {
-  useMarkAllRead,
-  useMarkRead,
-  useNotifications,
-} from './api';
+import { useMarkAllRead, useMarkRead, useNotifications } from './api';
 import {
   notificationLink,
   notificationTypeIcon,
@@ -55,8 +51,12 @@ export function NotificationsPage() {
         }}
       >
         <div>
-          <h1 style={{ margin: 0, color: 'var(--brand-purple)' }}>Notificações</h1>
-          <p style={{ margin: '0.25rem 0 0', color: 'var(--color-text-muted)' }}>
+          <h1 style={{ margin: 0, color: 'var(--brand-purple)' }}>
+            Notificações
+          </h1>
+          <p
+            style={{ margin: '0.25rem 0 0', color: 'var(--color-text-muted)' }}
+          >
             {unread > 0 ? `${unread} não lida(s)` : 'Tudo em dia.'}
           </p>
         </div>
@@ -126,7 +126,12 @@ export function NotificationsPage() {
                 </span>
               </div>
               {n.message && (
-                <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                <div
+                  style={{
+                    fontSize: '0.85rem',
+                    color: 'var(--color-text-muted)',
+                  }}
+                >
                   {n.message}
                 </div>
               )}

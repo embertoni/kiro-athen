@@ -86,10 +86,7 @@ export interface SumAlternativesSubmitted {
 }
 
 export type QuestionConfig =
-  | MatchConfig
-  | MultipleChoiceConfig
-  | FillBlankConfig
-  | SumAlternativesConfig;
+  MatchConfig | MultipleChoiceConfig | FillBlankConfig | SumAlternativesConfig;
 
 export type SubmittedAnswer =
   | MatchSubmitted
@@ -178,7 +175,9 @@ export interface Lesson {
 
 /** A course with its nested modules, lessons and typed questions. */
 export interface CourseTree extends Course {
-  modules: (Module & { lessons: (Lesson & { questions: TypedQuestion[] })[] })[];
+  modules: (Module & {
+    lessons: (Lesson & { questions: TypedQuestion[] })[];
+  })[];
 }
 
 export interface Attempt {

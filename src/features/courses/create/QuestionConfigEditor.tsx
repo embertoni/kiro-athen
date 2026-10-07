@@ -66,7 +66,9 @@ export function QuestionConfigEditor({
               variant="ghost"
               size="sm"
               onClick={() =>
-                onChange({ pairs: pairs.filter((_, j) => j !== i) } as unknown as Json)
+                onChange({
+                  pairs: pairs.filter((_, j) => j !== i),
+                } as unknown as Json)
               }
               aria-label="Remover par"
             >
@@ -79,7 +81,9 @@ export function QuestionConfigEditor({
           variant="ghost"
           size="sm"
           onClick={() =>
-            onChange({ pairs: [...pairs, { left: '', right: '' }] } as unknown as Json)
+            onChange({
+              pairs: [...pairs, { left: '', right: '' }],
+            } as unknown as Json)
           }
         >
           + Adicionar par
@@ -142,7 +146,10 @@ export function QuestionConfigEditor({
           size="sm"
           onClick={() =>
             onChange({
-              options: [...options, { id: newOptionId(), text: '', correct: false }],
+              options: [
+                ...options,
+                { id: newOptionId(), text: '', correct: false },
+              ],
             } as unknown as Json)
           }
         >
@@ -158,8 +165,8 @@ export function QuestionConfigEditor({
     return (
       <div>
         <p style={labelHint}>
-          Use o enunciado para indicar a lacuna. Liste todas as respostas aceitas
-          (comparação ignora acentos, maiúsculas e espaços extras).
+          Use o enunciado para indicar a lacuna. Liste todas as respostas
+          aceitas (comparação ignora acentos, maiúsculas e espaços extras).
         </p>
         {answers.map((answer, i) => (
           <div key={i} style={rowStyle}>
@@ -167,7 +174,9 @@ export function QuestionConfigEditor({
               placeholder={`Resposta aceita ${i + 1}`}
               value={answer}
               onChange={(e) => {
-                const next = answers.map((a, j) => (j === i ? e.target.value : a));
+                const next = answers.map((a, j) =>
+                  j === i ? e.target.value : a,
+                );
                 onChange({ answers: next } as unknown as Json);
               }}
               style={{ flex: 1 }}
@@ -191,7 +200,9 @@ export function QuestionConfigEditor({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => onChange({ answers: [...answers, ''] } as unknown as Json)}
+          onClick={() =>
+            onChange({ answers: [...answers, ''] } as unknown as Json)
+          }
         >
           + Adicionar resposta aceita
         </Button>

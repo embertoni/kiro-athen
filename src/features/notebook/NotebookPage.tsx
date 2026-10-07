@@ -131,7 +131,10 @@ export function NotebookPage() {
         }}
       >
         <h1 style={{ margin: 0, color: 'var(--brand-purple)' }}>Caderno</h1>
-        <Button onClick={handleCreateNotebook} loading={createNotebook.isPending}>
+        <Button
+          onClick={handleCreateNotebook}
+          loading={createNotebook.isPending}
+        >
           Novo caderno
         </Button>
       </header>
@@ -157,7 +160,9 @@ export function NotebookPage() {
           {/* Sidebar: notebooks + pages */}
           <aside style={{ display: 'grid', gap: '0.75rem' }}>
             <div style={{ display: 'grid', gap: '0.3rem' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Cadernos</span>
+              <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>
+                Cadernos
+              </span>
               {notebooks.map((nb) => (
                 <div
                   key={nb.id}
@@ -213,7 +218,9 @@ export function NotebookPage() {
                     alignItems: 'center',
                   }}
                 >
-                  <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Páginas</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>
+                    Páginas
+                  </span>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -227,7 +234,11 @@ export function NotebookPage() {
                 {pages.map((pg, i) => (
                   <div
                     key={pg.id}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.2rem',
+                    }}
                   >
                     <button
                       type="button"

@@ -18,7 +18,8 @@ import type {
 } from '@/types/database';
 
 export const dashboardKeys = {
-  overview: (userId: string | undefined) => ['dashboard', 'overview', userId] as const,
+  overview: (userId: string | undefined) =>
+    ['dashboard', 'overview', userId] as const,
   trail: (userId: string | undefined, courseId: string | null) =>
     ['dashboard', 'trail', userId, courseId] as const,
 };

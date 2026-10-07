@@ -9,7 +9,11 @@ interface BrandMarkProps {
 }
 
 /** The Athen logo paired with the "Athen" wordmark. */
-export function BrandMark({ size = 32, hideWordmark = false, className }: BrandMarkProps) {
+export function BrandMark({
+  size = 32,
+  hideWordmark = false,
+  className,
+}: BrandMarkProps) {
   return (
     <span
       className={className}

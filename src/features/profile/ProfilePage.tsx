@@ -39,7 +39,9 @@ export function ProfilePage() {
 
   if (query.isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}
+      >
         <Spinner size={32} />
       </div>
     );
@@ -86,7 +88,8 @@ export function ProfilePage() {
             }}
             aria-hidden={!!p.avatar_url}
           >
-            {!p.avatar_url && (p.display_name || p.username).charAt(0).toUpperCase()}
+            {!p.avatar_url &&
+              (p.display_name || p.username).charAt(0).toUpperCase()}
           </div>
 
           <div
@@ -103,14 +106,24 @@ export function ProfilePage() {
               <h1 style={{ margin: 0, color: 'var(--brand-purple)' }}>
                 {p.display_name}
               </h1>
-              <div style={{ color: 'var(--color-text-muted)' }}>@{p.username}</div>
+              <div style={{ color: 'var(--color-text-muted)' }}>
+                @{p.username}
+              </div>
             </div>
             {view.isOwner && (
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setEditOpen(true)}
+                >
                   Editar perfil
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => setMedalsOpen(true)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMedalsOpen(true)}
+                >
                   Destacar medalhas
                 </Button>
               </div>
@@ -118,7 +131,9 @@ export function ProfilePage() {
           </div>
 
           {p.bio && (
-            <p style={{ marginTop: '0.75rem', whiteSpace: 'pre-wrap' }}>{p.bio}</p>
+            <p style={{ marginTop: '0.75rem', whiteSpace: 'pre-wrap' }}>
+              {p.bio}
+            </p>
           )}
         </div>
       </section>
@@ -231,7 +246,9 @@ function MedalChip({
         padding: '0.45rem 0.7rem',
         borderRadius: 'var(--radius-md)',
         border: `1px solid ${highlight ? 'var(--brand-gold-dark)' : 'var(--color-border)'}`,
-        background: highlight ? 'rgba(255, 193, 7, 0.12)' : 'var(--color-surface)',
+        background: highlight
+          ? 'rgba(255, 193, 7, 0.12)'
+          : 'var(--color-surface)',
       }}
     >
       <span style={{ fontSize: '1.2rem' }} aria-hidden>

@@ -18,7 +18,9 @@ export function NotFoundPage() {
       }}
     >
       <BrandMark size={48} />
-      <h1 style={{ margin: 0, color: 'var(--brand-purple)' }}>Página não encontrada</h1>
+      <h1 style={{ margin: 0, color: 'var(--brand-purple)' }}>
+        Página não encontrada
+      </h1>
       <p style={{ margin: 0, color: 'var(--color-text-muted)' }}>
         O endereço que você acessou não existe.
       </p>

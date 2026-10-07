@@ -13,7 +13,8 @@ import { supabase } from '@/lib/supabase';
 import type { MedalRow, UserMedalRow } from '@/types/database';
 
 export const gamificationKeys = {
-  medals: (userId: string | undefined) => ['gamification', 'medals', userId] as const,
+  medals: (userId: string | undefined) =>
+    ['gamification', 'medals', userId] as const,
 };
 
 export interface MedalDisplay {

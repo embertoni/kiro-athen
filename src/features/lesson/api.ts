@@ -11,7 +11,11 @@
  * Nothing here writes a trusted xp_earned / is_correct value.
  */
 
-import { useMutation, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  type UseQueryResult,
+} from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type {
   AnswerRow,
@@ -30,7 +34,8 @@ import type { AttemptResult, SubmittedAnswer } from '@/types/domain';
 
 export const lessonKeys = {
   all: ['lesson'] as const,
-  withQuestions: (lessonId: string) => ['lesson', 'questions', lessonId] as const,
+  withQuestions: (lessonId: string) =>
+    ['lesson', 'questions', lessonId] as const,
   progress: (lessonId: string, userId: string | undefined) =>
     ['lesson', 'progress', lessonId, userId] as const,
 };
@@ -77,8 +82,7 @@ export function useLessonWithQuestions(
       type Joined = LessonRow & {
         questions: QuestionRow[];
         module:
-          | (ModuleRow & { course: { id: string; title: string } | null })
-          | null;
+          (ModuleRow & { course: { id: string; title: string } | null }) | null;
       };
       const row = data as unknown as Joined;
       if (!row.module || !row.module.course) {
@@ -277,7 +281,9 @@ export function useLessonProgress(
 }
 
 /** Load every answer of a finalized attempt (to show per-question results). */
-export async function getAttemptAnswers(attemptId: string): Promise<AnswerRow[]> {
+export async function getAttemptAnswers(
+  attemptId: string,
+): Promise<AnswerRow[]> {
   const { data, error } = await supabase
     .from('answers')
     .select('*')

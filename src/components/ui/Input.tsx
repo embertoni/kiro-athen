@@ -28,7 +28,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {label && (
         <label
           htmlFor={inputId}
-          style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)' }}
+          style={{
+            fontSize: '0.85rem',
+            fontWeight: 600,
+            color: 'var(--color-text)',
+          }}
         >
           {label}
         </label>

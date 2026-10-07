@@ -97,9 +97,7 @@ export function useChangePassword() {
 export function useUpdatePreferences(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (
-      prefs: Record<string, boolean>,
-    ): Promise<ProfileRow> => {
+    mutationFn: async (prefs: Record<string, boolean>): Promise<ProfileRow> => {
       if (!userId) throw new Error('Sessão expirada. Faça login novamente.');
       const { data, error } = await supabase
         .from('profiles')

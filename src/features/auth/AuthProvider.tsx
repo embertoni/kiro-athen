@@ -96,10 +96,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (mounted.current) setLoading(false);
       });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      if (!mounted.current) return;
-      setSession(nextSession);
-    });
+    const { data: sub } = supabase.auth.onAuthStateChange(
+      (_event, nextSession) => {
+        if (!mounted.current) return;
+        setSession(nextSession);
+      },
+    );
 
     return () => {
       mounted.current = false;
@@ -161,7 +163,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email = data;
     }
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     if (error) throw error;
   }, []);
 
@@ -182,7 +187,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updatePassword = useCallback<AuthContextValue['updatePassword']>(
     async (newPassword) => {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
       if (error) throw error;
     },
     [],

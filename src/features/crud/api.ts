@@ -10,11 +10,7 @@
  * limited to a safe subset of columns per entity.
  */
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
 /** The admin-manageable entities and their list columns. */
@@ -190,7 +186,10 @@ export function useCrudDelete(entity: CrudEntity) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabase.from(cfg.table).delete().eq(cfg.idKey, id);
+      const { error } = await supabase
+        .from(cfg.table)
+        .delete()
+        .eq(cfg.idKey, id);
       if (error) throw error;
     },
     onSuccess: () => {

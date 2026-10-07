@@ -84,7 +84,14 @@ export function Button({
       }}
     >
       {loading && (
-        <Spinner size={16} color={variant === 'primary' || variant === 'danger' ? '#fff' : 'var(--brand-purple)'} />
+        <Spinner
+          size={16}
+          color={
+            variant === 'primary' || variant === 'danger'
+              ? '#fff'
+              : 'var(--brand-purple)'
+          }
+        />
       )}
       {children}
     </button>

@@ -17,7 +17,9 @@ export function LandingPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
+    >
       <header
         style={{
           display: 'flex',
@@ -74,10 +76,17 @@ export function LandingPage() {
           }}
         >
           A Athen é a plataforma colaborativa de aprendizado com cursos
-          interativos, salas de estudo, gamificação com XP, níveis e divisões,
-          e amigos para manter sua rotina de estudos em dia.
+          interativos, salas de estudo, gamificação com XP, níveis e divisões, e
+          amigos para manter sua rotina de estudos em dia.
         </p>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '0.75rem',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+          }}
+        >
           <Link to="/register">
             <Button variant="primary" size="lg">
               Começar agora

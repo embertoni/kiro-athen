@@ -101,7 +101,10 @@ export function RegisterPage() {
         </>
       }
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}
+      >
         <Input
           label="Nome de usuário"
           value={username}

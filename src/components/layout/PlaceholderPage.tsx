@@ -30,7 +30,13 @@ export function PlaceholderPage({ title, description }: PlaceholderPageProps) {
         {description ?? 'Esta área será implementada em uma etapa posterior.'}
       </p>
       {paramEntries.length > 0 && (
-        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+        <p
+          style={{
+            margin: 0,
+            fontSize: '0.85rem',
+            color: 'var(--color-text-muted)',
+          }}
+        >
           Parâmetros da rota:{' '}
           {paramEntries.map(([k, v]) => `${k}=${v}`).join(', ')}
         </p>

@@ -40,7 +40,9 @@ export function CrudPage() {
   return (
     <div style={{ display: 'grid', gap: '1rem' }}>
       <header>
-        <h1 style={{ margin: 0, color: 'var(--brand-purple)' }}>CRUD (admin)</h1>
+        <h1 style={{ margin: 0, color: 'var(--brand-purple)' }}>
+          CRUD (admin)
+        </h1>
         <p style={{ margin: '0.25rem 0 0', color: 'var(--color-text-muted)' }}>
           Gerencie os dados principais da plataforma. Alterações são aplicadas
           imediatamente e protegidas por políticas de administrador no servidor.
@@ -80,7 +82,8 @@ function EntityTable({ entity }: { entity: CrudEntity }) {
     setEditingId(id);
     const next: Record<string, string> = {};
     for (const key of cfg.editableKeys) {
-      next[key] = row[key] === null || row[key] === undefined ? '' : String(row[key]);
+      next[key] =
+        row[key] === null || row[key] === undefined ? '' : String(row[key]);
     }
     setDraft(next);
   }
@@ -96,7 +99,9 @@ function EntityTable({ entity }: { entity: CrudEntity }) {
   }
 
   async function remove(id: string) {
-    if (!window.confirm('Excluir este registro? Esta ação não pode ser desfeita.')) {
+    if (
+      !window.confirm('Excluir este registro? Esta ação não pode ser desfeita.')
+    ) {
       return;
     }
     try {
@@ -108,7 +113,8 @@ function EntityTable({ entity }: { entity: CrudEntity }) {
   }
 
   if (list.isLoading) return <Spinner size={28} />;
-  if (list.isError) return <ErrorText>Não foi possível carregar os dados.</ErrorText>;
+  if (list.isError)
+    return <ErrorText>Não foi possível carregar os dados.</ErrorText>;
 
   const rows = list.data ?? [];
 
@@ -137,7 +143,12 @@ function EntityTable({ entity }: { entity: CrudEntity }) {
                 {col.label}
               </th>
             ))}
-            <th style={{ padding: '0.5rem', borderBottom: '2px solid var(--color-border)' }}>
+            <th
+              style={{
+                padding: '0.5rem',
+                borderBottom: '2px solid var(--color-border)',
+              }}
+            >
               Ações
             </th>
           </tr>
@@ -147,7 +158,10 @@ function EntityTable({ entity }: { entity: CrudEntity }) {
             const id = String(row[cfg.idKey]);
             const editing = editingId === id;
             return (
-              <tr key={id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+              <tr
+                key={id}
+                style={{ borderBottom: '1px solid var(--color-border)' }}
+              >
                 {cfg.columns.map((col) => (
                   <td key={col.key} style={{ padding: '0.45rem 0.5rem' }}>
                     {editing && col.editable ? (
@@ -155,15 +169,24 @@ function EntityTable({ entity }: { entity: CrudEntity }) {
                         <Select
                           value={draft[col.key] ?? ''}
                           onChange={(e) =>
-                            setDraft((d) => ({ ...d, [col.key]: e.target.value }))
+                            setDraft((d) => ({
+                              ...d,
+                              [col.key]: e.target.value,
+                            }))
                           }
-                          options={col.options.map((o) => ({ value: o, label: o }))}
+                          options={col.options.map((o) => ({
+                            value: o,
+                            label: o,
+                          }))}
                         />
                       ) : (
                         <input
                           value={draft[col.key] ?? ''}
                           onChange={(e) =>
-                            setDraft((d) => ({ ...d, [col.key]: e.target.value }))
+                            setDraft((d) => ({
+                              ...d,
+                              [col.key]: e.target.value,
+                            }))
                           }
                           style={{
                             padding: '0.3rem 0.4rem',
@@ -189,16 +212,28 @@ function EntityTable({ entity }: { entity: CrudEntity }) {
                       >
                         Salvar
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setEditingId(null)}
+                      >
                         Cancelar
                       </Button>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', gap: '0.3rem' }}>
-                      <Button size="sm" variant="secondary" onClick={() => startEdit(row)}>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => startEdit(row)}
+                      >
                         Editar
                       </Button>
-                      <Button size="sm" variant="danger" onClick={() => remove(id)}>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => remove(id)}
+                      >
                         Excluir
                       </Button>
                     </div>

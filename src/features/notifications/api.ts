@@ -6,17 +6,14 @@
  * is_read. This module reads the list + unread count and marks rows read.
  */
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type { NotificationRow } from '@/types/database';
 
 export const notificationKeys = {
   all: ['notifications'] as const,
-  list: (userId: string | undefined) => ['notifications', 'list', userId] as const,
+  list: (userId: string | undefined) =>
+    ['notifications', 'list', userId] as const,
   unread: (userId: string | undefined) =>
     ['notifications', 'unread', userId] as const,
 };

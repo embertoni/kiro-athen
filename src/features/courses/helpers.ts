@@ -22,16 +22,18 @@ import type { CourseStatus, CourseVisibility } from '@/types/database';
  * Pure function: given the same input it always returns the same output.
  */
 export function slugify(input: string): string {
-  return input
-    .normalize('NFD')
-    // Remove combining diacritical marks (á -> a, ç -> c, etc.).
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-    // Any run of non [a-z0-9] becomes a single hyphen.
-    .replace(/[^a-z0-9]+/g, '-')
-    // Trim leading/trailing hyphens.
-    .replace(/^-+|-+$/g, '');
+  return (
+    input
+      .normalize('NFD')
+      // Remove combining diacritical marks (á -> a, ç -> c, etc.).
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+      // Any run of non [a-z0-9] becomes a single hyphen.
+      .replace(/[^a-z0-9]+/g, '-')
+      // Trim leading/trailing hyphens.
+      .replace(/^-+|-+$/g, '')
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -90,7 +92,9 @@ export function buildCatalogPredicate(
 ): (course: SearchableCourse) => boolean {
   const term = normalizeText(filters.search);
   const wantTag = filters.tag ? normalizeText(filters.tag) : null;
-  const wantCategory = filters.category ? normalizeText(filters.category) : null;
+  const wantCategory = filters.category
+    ? normalizeText(filters.category)
+    : null;
 
   return (course: SearchableCourse): boolean => {
     if (wantCategory) {

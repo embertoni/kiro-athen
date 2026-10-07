@@ -18,10 +18,7 @@ import type { FriendshipRow, FriendshipStatus } from '@/types/database';
  *   request_received— pending, current user is the addressee (accept/decline)
  */
 export type FriendRelation =
-  | 'none'
-  | 'friends'
-  | 'request_sent'
-  | 'request_received';
+  'none' | 'friends' | 'request_sent' | 'request_received';
 
 export interface FriendStatus {
   relation: FriendRelation;
@@ -36,10 +33,9 @@ export interface FriendStatus {
 export function reduceFriendStatus(
   viewerId: string,
   otherId: string,
-  friendship: Pick<
-    FriendshipRow,
-    'id' | 'requester_id' | 'addressee_id' | 'status'
-  > | null
+  friendship:
+    | Pick<FriendshipRow, 'id' | 'requester_id' | 'addressee_id' | 'status'>
+    | null
     | undefined,
 ): FriendStatus {
   if (!friendship) {

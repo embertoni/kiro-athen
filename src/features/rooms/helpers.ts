@@ -22,7 +22,9 @@ export const ACCESS_CODE_LENGTH = 6;
  * The uniqueness constraint lives on rooms.access_code; on the rare collision
  * the caller retries. Uses crypto.getRandomValues when available.
  */
-export function generateAccessCode(length: number = ACCESS_CODE_LENGTH): string {
+export function generateAccessCode(
+  length: number = ACCESS_CODE_LENGTH,
+): string {
   const alphabet = ACCESS_CODE_ALPHABET;
   const out: string[] = [];
   const cryptoObj =
@@ -50,9 +52,7 @@ export function generateAccessCode(length: number = ACCESS_CODE_LENGTH): string 
  * characters. Does NOT validate length.
  */
 export function normalizeAccessCode(raw: string): string {
-  return (raw ?? '')
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '');
+  return (raw ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
 /**

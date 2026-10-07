@@ -120,9 +120,9 @@ describe('match', () => {
   };
 
   it('builds a submitted payload preserving pairs', () => {
-    expect(
-      buildMatchSubmitted([{ left: 'FR', right: 'Paris' }]),
-    ).toEqual({ pairs: [{ left: 'FR', right: 'Paris' }] });
+    expect(buildMatchSubmitted([{ left: 'FR', right: 'Paris' }])).toEqual({
+      pairs: [{ left: 'FR', right: 'Paris' }],
+    });
   });
 
   it('is correct only when every pair matches', () => {

@@ -41,12 +41,26 @@ export function AuthCard({ title, subtitle, children, footer }: AuthCardProps) {
           gap: '1rem',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <h1 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--brand-purple)' }}>
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}
+        >
+          <h1
+            style={{
+              margin: 0,
+              fontSize: '1.3rem',
+              color: 'var(--brand-purple)',
+            }}
+          >
             {title}
           </h1>
           {subtitle && (
-            <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+            <p
+              style={{
+                margin: 0,
+                color: 'var(--color-text-muted)',
+                fontSize: '0.9rem',
+              }}
+            >
               {subtitle}
             </p>
           )}
@@ -54,7 +68,13 @@ export function AuthCard({ title, subtitle, children, footer }: AuthCardProps) {
         {children}
       </div>
       {footer && (
-        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+        <p
+          style={{
+            margin: 0,
+            fontSize: '0.9rem',
+            color: 'var(--color-text-muted)',
+          }}
+        >
           {footer}
         </p>
       )}

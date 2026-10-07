@@ -14,7 +14,9 @@ describe('slugify', () => {
   });
 
   it('strips accents and diacritics', () => {
-    expect(slugify('Introdução à Programação')).toBe('introducao-a-programacao');
+    expect(slugify('Introdução à Programação')).toBe(
+      'introducao-a-programacao',
+    );
     expect(slugify('Café com Leite')).toBe('cafe-com-leite');
   });
 
@@ -68,7 +70,9 @@ const COURSES: SearchableCourse[] = [
 ];
 
 function filter(partial: Partial<Parameters<typeof buildCatalogPredicate>[0]>) {
-  return COURSES.filter(buildCatalogPredicate({ ...EMPTY_FILTERS, ...partial }));
+  return COURSES.filter(
+    buildCatalogPredicate({ ...EMPTY_FILTERS, ...partial }),
+  );
 }
 
 describe('buildCatalogPredicate', () => {
@@ -148,7 +152,9 @@ describe('hasActiveFilters', () => {
   });
 
   it('is true when a category is set', () => {
-    expect(hasActiveFilters({ ...EMPTY_FILTERS, category: 'Humanas' })).toBe(true);
+    expect(hasActiveFilters({ ...EMPTY_FILTERS, category: 'Humanas' })).toBe(
+      true,
+    );
   });
 });
 

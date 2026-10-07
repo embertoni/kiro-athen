@@ -10,7 +10,9 @@ import {
 
 describe('notificationTypeLabel', () => {
   it('labels each DB enum type in pt-BR', () => {
-    expect(notificationTypeLabel('atualizacao_curso')).toBe('Atualização de curso');
+    expect(notificationTypeLabel('atualizacao_curso')).toBe(
+      'Atualização de curso',
+    );
     expect(notificationTypeLabel('pedido_amizade')).toBe('Pedido de amizade');
     expect(notificationTypeLabel('convite_sala')).toBe('Convite para sala');
     expect(notificationTypeLabel('missao')).toBe('Missão');
@@ -27,32 +29,40 @@ describe('notificationTypeIcon', () => {
 
 describe('notificationLink', () => {
   it('routes friend-related notifications to /friends', () => {
-    expect(notificationLink({ type: 'pedido_amizade', reference_id: null })).toBe('/friends');
-    expect(notificationLink({ type: 'lembrete_estudo', reference_id: null })).toBe('/friends');
+    expect(
+      notificationLink({ type: 'pedido_amizade', reference_id: null }),
+    ).toBe('/friends');
+    expect(
+      notificationLink({ type: 'lembrete_estudo', reference_id: null }),
+    ).toBe('/friends');
   });
 
   it('routes room notifications to the referenced room', () => {
-    expect(notificationLink({ type: 'convite_sala', reference_id: 'room-1' })).toBe('/rooms/room-1');
-    expect(notificationLink({ type: 'missao', reference_id: 'room-2' })).toBe('/rooms/room-2');
+    expect(
+      notificationLink({ type: 'convite_sala', reference_id: 'room-1' }),
+    ).toBe('/rooms/room-1');
+    expect(notificationLink({ type: 'missao', reference_id: 'room-2' })).toBe(
+      '/rooms/room-2',
+    );
   });
 
   it('falls back to /rooms when a room notification has no reference', () => {
-    expect(notificationLink({ type: 'convite_sala', reference_id: null })).toBe('/rooms');
+    expect(notificationLink({ type: 'convite_sala', reference_id: null })).toBe(
+      '/rooms',
+    );
   });
 
   it('routes course updates to the catalog', () => {
-    expect(notificationLink({ type: 'atualizacao_curso', reference_id: 'c1' })).toBe('/catalog');
+    expect(
+      notificationLink({ type: 'atualizacao_curso', reference_id: 'c1' }),
+    ).toBe('/catalog');
   });
 });
 
 describe('unreadCount + formatUnreadBadge', () => {
   it('counts only unread notifications', () => {
     expect(
-      unreadCount([
-        { is_read: false },
-        { is_read: true },
-        { is_read: false },
-      ]),
+      unreadCount([{ is_read: false }, { is_read: true }, { is_read: false }]),
     ).toBe(2);
     expect(unreadCount([])).toBe(0);
   });

@@ -25,17 +25,11 @@ export type UserRole = 'student' | 'educator' | 'admin';
 export type CourseStatus = 'draft' | 'published';
 export type CourseVisibility = 'public' | 'private';
 export type QuestionType =
-  | 'match'
-  | 'multiple_choice'
-  | 'fill_blank'
-  | 'sum_alternatives';
+  'match' | 'multiple_choice' | 'fill_blank' | 'sum_alternatives';
 export type EnrollmentStatus = 'active' | 'completed' | 'dropped';
 export type RoomMemberStatus = 'active' | 'removed';
 export type FriendshipStatus =
-  | 'pending'
-  | 'accepted'
-  | 'declined'
-  | 'cancelled';
+  'pending' | 'accepted' | 'declined' | 'cancelled';
 export type NotificationType =
   | 'atualizacao_curso'
   | 'pedido_amizade'
@@ -380,7 +374,12 @@ type CompletionInsert = Opt<
 
 type RoomInsert = Opt<
   RoomRow,
-  'id' | 'course_id' | 'code_active' | 'pac_visibility' | 'created_at' | 'updated_at'
+  | 'id'
+  | 'course_id'
+  | 'code_active'
+  | 'pac_visibility'
+  | 'created_at'
+  | 'updated_at'
 >;
 
 type RoomMemberInsert = Opt<
@@ -428,10 +427,7 @@ type NotificationInsert = Opt<
 
 type MedalInsert = Opt<MedalRow, 'icon'>;
 
-type UserMedalInsert = Opt<
-  UserMedalRow,
-  'id' | 'acquired_at' | 'featured'
->;
+type UserMedalInsert = Opt<UserMedalRow, 'id' | 'acquired_at' | 'featured'>;
 
 type ReviewInsert = Opt<
   ReviewRow,
@@ -440,7 +436,13 @@ type ReviewInsert = Opt<
 
 type CommentInsert = Opt<
   CommentRow,
-  'id' | 'course_id' | 'lesson_id' | 'parent_id' | 'status' | 'created_at' | 'updated_at'
+  | 'id'
+  | 'course_id'
+  | 'lesson_id'
+  | 'parent_id'
+  | 'status'
+  | 'created_at'
+  | 'updated_at'
 >;
 
 type NotebookInsert = Opt<NotebookRow, 'id' | 'created_at' | 'updated_at'>;
@@ -461,23 +463,59 @@ export interface Database {
       modules: TableShape<ModuleRow, ModuleInsert, Partial<ModuleRow>>;
       lessons: TableShape<LessonRow, LessonInsert, Partial<LessonRow>>;
       questions: TableShape<QuestionRow, QuestionInsert, Partial<QuestionRow>>;
-      enrollments: TableShape<EnrollmentRow, EnrollmentInsert, Partial<EnrollmentRow>>;
+      enrollments: TableShape<
+        EnrollmentRow,
+        EnrollmentInsert,
+        Partial<EnrollmentRow>
+      >;
       attempts: TableShape<AttemptRow, AttemptInsert, Partial<AttemptRow>>;
       answers: TableShape<AnswerRow, AnswerInsert, Partial<AnswerRow>>;
-      completions: TableShape<CompletionRow, CompletionInsert, Partial<CompletionRow>>;
+      completions: TableShape<
+        CompletionRow,
+        CompletionInsert,
+        Partial<CompletionRow>
+      >;
       rooms: TableShape<RoomRow, RoomInsert, Partial<RoomRow>>;
-      room_members: TableShape<RoomMemberRow, RoomMemberInsert, Partial<RoomMemberRow>>;
-      announcements: TableShape<AnnouncementRow, AnnouncementInsert, Partial<AnnouncementRow>>;
+      room_members: TableShape<
+        RoomMemberRow,
+        RoomMemberInsert,
+        Partial<RoomMemberRow>
+      >;
+      announcements: TableShape<
+        AnnouncementRow,
+        AnnouncementInsert,
+        Partial<AnnouncementRow>
+      >;
       missions: TableShape<MissionRow, MissionInsert, Partial<MissionRow>>;
-      mission_progress: TableShape<MissionProgressRow, MissionProgressInsert, Partial<MissionProgressRow>>;
-      friendships: TableShape<FriendshipRow, FriendshipInsert, Partial<FriendshipRow>>;
-      notifications: TableShape<NotificationRow, NotificationInsert, Partial<NotificationRow>>;
+      mission_progress: TableShape<
+        MissionProgressRow,
+        MissionProgressInsert,
+        Partial<MissionProgressRow>
+      >;
+      friendships: TableShape<
+        FriendshipRow,
+        FriendshipInsert,
+        Partial<FriendshipRow>
+      >;
+      notifications: TableShape<
+        NotificationRow,
+        NotificationInsert,
+        Partial<NotificationRow>
+      >;
       medals: TableShape<MedalRow, MedalInsert, Partial<MedalRow>>;
-      user_medals: TableShape<UserMedalRow, UserMedalInsert, Partial<UserMedalRow>>;
+      user_medals: TableShape<
+        UserMedalRow,
+        UserMedalInsert,
+        Partial<UserMedalRow>
+      >;
       reviews: TableShape<ReviewRow, ReviewInsert, Partial<ReviewRow>>;
       comments: TableShape<CommentRow, CommentInsert, Partial<CommentRow>>;
       notebooks: TableShape<NotebookRow, NotebookInsert, Partial<NotebookRow>>;
-      notebook_pages: TableShape<NotebookPageRow, NotebookPageInsert, Partial<NotebookPageRow>>;
+      notebook_pages: TableShape<
+        NotebookPageRow,
+        NotebookPageInsert,
+        Partial<NotebookPageRow>
+      >;
     };
     Views: {
       global_ranking: {

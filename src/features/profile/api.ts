@@ -7,11 +7,7 @@
  * the owner can update their row (role immutable).
  */
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type { MedalRow, ProfileRow, UserMedalRow } from '@/types/database';
 
@@ -19,7 +15,8 @@ export const profileKeys = {
   all: ['profile'] as const,
   byUsername: (username: string | undefined) =>
     ['profile', 'by-username', username] as const,
-  medals: (userId: string | undefined) => ['profile', 'medals', userId] as const,
+  medals: (userId: string | undefined) =>
+    ['profile', 'medals', userId] as const,
 };
 
 export interface ProfileMedal {
@@ -93,7 +90,9 @@ export function useProfile(
       if (medalsRes.error) throw medalsRes.error;
 
       type MedalJoin = UserMedalRow & { medal: MedalRow | null };
-      const medals: ProfileMedal[] = ((medalsRes.data ?? []) as unknown as MedalJoin[])
+      const medals: ProfileMedal[] = (
+        (medalsRes.data ?? []) as unknown as MedalJoin[]
+      )
         .filter((m) => m.medal)
         .map((m) => ({ award: m, medal: m.medal as MedalRow }));
 

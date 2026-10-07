@@ -65,8 +65,20 @@ export function CourseCard({
         }
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
-        <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--brand-purple)' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: '0.5rem',
+        }}
+      >
+        <h3
+          style={{
+            margin: 0,
+            fontSize: '1.05rem',
+            color: 'var(--brand-purple)',
+          }}
+        >
           {title}
         </h3>
         {status && (
@@ -88,12 +100,24 @@ export function CourseCard({
         )}
       </div>
 
-      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+      <p
+        style={{
+          margin: 0,
+          fontSize: '0.85rem',
+          color: 'var(--color-text-muted)',
+        }}
+      >
         por {creatorName}
       </p>
 
       {category && (
-        <span style={{ ...badge, background: 'rgba(91, 42, 134, 0.1)', color: 'var(--brand-purple)' }}>
+        <span
+          style={{
+            ...badge,
+            background: 'rgba(91, 42, 134, 0.1)',
+            color: 'var(--brand-purple)',
+          }}
+        >
           {category}
         </span>
       )}
@@ -117,7 +141,13 @@ export function CourseCard({
         </div>
       )}
 
-      <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
+      <p
+        style={{
+          margin: 0,
+          fontSize: '0.82rem',
+          color: 'var(--color-text-muted)',
+        }}
+      >
         {studentCount} {studentCount === 1 ? 'aluno' : 'alunos'}
       </p>
 
@@ -139,14 +169,24 @@ export function CourseCard({
               }}
             />
           </div>
-          <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+          <span
+            style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}
+          >
             {Math.round(progress)}% concluído
           </span>
         </div>
       )}
 
       <div style={{ marginTop: 'auto', display: 'flex', gap: '0.5rem' }}>
-        <Button type="button" variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onOpen(); }}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpen();
+          }}
+        >
           Ver detalhes
         </Button>
         {onEnroll &&

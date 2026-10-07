@@ -124,7 +124,14 @@ export function CatalogPage() {
       </p>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.5rem',
+          flexWrap: 'wrap',
+          marginBottom: '0.75rem',
+        }}
+      >
         {(Object.keys(TAB_LABELS) as Tab[]).map((t) => (
           <Button
             key={t}
@@ -136,7 +143,11 @@ export function CatalogPage() {
           </Button>
         ))}
         <div style={{ marginLeft: 'auto' }}>
-          <Button variant="secondary" size="sm" onClick={() => navigate('/create')}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => navigate('/create')}
+          >
             + Criar curso
           </Button>
         </div>
@@ -152,7 +163,15 @@ export function CatalogPage() {
             alignItems: 'flex-end',
           }}
         >
-          <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '0.5rem', flex: 1, minWidth: '14rem' }}>
+          <form
+            onSubmit={handleSearchSubmit}
+            style={{
+              display: 'flex',
+              gap: '0.5rem',
+              flex: 1,
+              minWidth: '14rem',
+            }}
+          >
             <Input
               placeholder="Buscar por título, criador, tag..."
               value={searchInput}
@@ -167,9 +186,7 @@ export function CatalogPage() {
           <select
             aria-label="Filtrar por categoria"
             value={filters.category ?? ''}
-            onChange={(e) =>
-              applyFilters({ category: e.target.value || null })
-            }
+            onChange={(e) => applyFilters({ category: e.target.value || null })}
             style={selectStyle}
           >
             <option value="">Todas as categorias</option>
@@ -234,7 +251,13 @@ export function CatalogPage() {
             ))}
           </div>
           {catalogQuery.isLoading && (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                padding: '1.5rem',
+              }}
+            >
               <Spinner size={28} />
             </div>
           )}
@@ -244,8 +267,17 @@ export function CatalogPage() {
             </p>
           )}
           {page?.hasMore && !catalogQuery.isLoading && (
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.25rem' }}>
-              <Button variant="ghost" onClick={() => setOffset(page.nextOffset)}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                marginTop: '1.25rem',
+              }}
+            >
+              <Button
+                variant="ghost"
+                onClick={() => setOffset(page.nextOffset)}
+              >
                 Ver mais
               </Button>
             </div>
@@ -256,7 +288,13 @@ export function CatalogPage() {
       {tab === 'enrolled' && (
         <>
           {enrollmentsQuery.isLoading && (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                padding: '1.5rem',
+              }}
+            >
               <Spinner size={28} />
             </div>
           )}
@@ -275,18 +313,27 @@ export function CatalogPage() {
               />
             ))}
           </div>
-          {!enrollmentsQuery.isLoading && (enrollmentsQuery.data ?? []).length === 0 && (
-            <p style={{ color: 'var(--color-text-muted)', marginTop: '1rem' }}>
-              Você ainda não se matriculou em nenhum curso.
-            </p>
-          )}
+          {!enrollmentsQuery.isLoading &&
+            (enrollmentsQuery.data ?? []).length === 0 && (
+              <p
+                style={{ color: 'var(--color-text-muted)', marginTop: '1rem' }}
+              >
+                Você ainda não se matriculou em nenhum curso.
+              </p>
+            )}
         </>
       )}
 
       {tab === 'created' && (
         <>
           {createdQuery.isLoading && (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                padding: '1.5rem',
+              }}
+            >
               <Spinner size={28} />
             </div>
           )}
@@ -304,14 +351,21 @@ export function CatalogPage() {
               />
             ))}
           </div>
-          {!createdQuery.isLoading && (createdQuery.data ?? []).length === 0 && (
-            <p style={{ color: 'var(--color-text-muted)', marginTop: '1rem' }}>
-              Você ainda não criou cursos.{' '}
-              <Button variant="ghost" size="sm" onClick={() => navigate('/create')}>
-                Criar o primeiro
-              </Button>
-            </p>
-          )}
+          {!createdQuery.isLoading &&
+            (createdQuery.data ?? []).length === 0 && (
+              <p
+                style={{ color: 'var(--color-text-muted)', marginTop: '1rem' }}
+              >
+                Você ainda não criou cursos.{' '}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/create')}
+                >
+                  Criar o primeiro
+                </Button>
+              </p>
+            )}
         </>
       )}
 

@@ -5,7 +5,49 @@ import {
   levelForXp,
   normalizeFillBlank,
   pacFromCounts,
+  xpForQuestion,
 } from '../rules';
+import { DIVISION_BANDS, LEVEL_THRESHOLDS, QUESTION_XP } from '../constants';
+
+describe('xpForQuestion / QUESTION_XP (SQL xp_from_question mirror)', () => {
+  it('awards the exact XP per question type', () => {
+    expect(xpForQuestion('match')).toBe(2);
+    expect(xpForQuestion('multiple_choice')).toBe(4);
+    expect(xpForQuestion('fill_blank')).toBe(6);
+    expect(xpForQuestion('sum_alternatives')).toBe(8);
+  });
+
+  it('pins the XP table so a rule change breaks the test', () => {
+    expect(QUESTION_XP).toEqual({
+      match: 2,
+      multiple_choice: 4,
+      fill_blank: 6,
+      sum_alternatives: 8,
+    });
+  });
+});
+
+describe('domain constant tables (SQL parity guards)', () => {
+  it('pins the level thresholds (L1..L5) exactly', () => {
+    expect(LEVEL_THRESHOLDS).toEqual([
+      { level: 1, min: 0, max: 99 },
+      { level: 2, min: 100, max: 249 },
+      { level: 3, min: 250, max: 499 },
+      { level: 4, min: 500, max: 999 },
+      { level: 5, min: 1000, max: 1999 },
+    ]);
+  });
+
+  it('pins the division bands exactly', () => {
+    expect(DIVISION_BANDS).toEqual([
+      { division: 'Bronze', min: 0, max: 59 },
+      { division: 'Prata', min: 60, max: 74 },
+      { division: 'Gold', min: 75, max: 84 },
+      { division: 'Platina', min: 85, max: 94 },
+      { division: 'Diamante', min: 95, max: 100 },
+    ]);
+  });
+});
 
 describe('levelForXp', () => {
   it('resolves boundary XP values to the correct level', () => {

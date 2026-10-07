@@ -11,7 +11,9 @@ const B = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 const C = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 
 function row(
-  partial: Partial<Pick<FriendshipRow, 'id' | 'requester_id' | 'addressee_id' | 'status'>>,
+  partial: Partial<
+    Pick<FriendshipRow, 'id' | 'requester_id' | 'addressee_id' | 'status'>
+  >,
 ) {
   return {
     id: 'f1',
@@ -58,9 +60,9 @@ describe('reduceFriendStatus', () => {
     expect(reduceFriendStatus(A, B, row({ status: 'declined' })).relation).toBe(
       'none',
     );
-    expect(reduceFriendStatus(A, B, row({ status: 'cancelled' })).relation).toBe(
-      'none',
-    );
+    expect(
+      reduceFriendStatus(A, B, row({ status: 'cancelled' })).relation,
+    ).toBe('none');
   });
 
   it('ignores a row that does not involve both users', () => {
@@ -88,6 +90,8 @@ describe('otherParticipantId', () => {
   });
 
   it('returns null when the viewer is not a participant', () => {
-    expect(otherParticipantId(C, { requester_id: A, addressee_id: B })).toBeNull();
+    expect(
+      otherParticipantId(C, { requester_id: A, addressee_id: B }),
+    ).toBeNull();
   });
 });

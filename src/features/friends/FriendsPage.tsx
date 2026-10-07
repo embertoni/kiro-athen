@@ -44,7 +44,9 @@ export function FriendsPage() {
       await sendRequest.mutateAsync(target.id);
       toast.success(`Pedido enviado para @${target.username}.`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Não foi possível enviar.');
+      toast.error(
+        err instanceof Error ? err.message : 'Não foi possível enviar.',
+      );
     }
   }
 
@@ -122,7 +124,10 @@ function PersonRow({
   profile,
   action,
 }: {
-  profile: Pick<FriendProfile, 'id' | 'username' | 'display_name' | 'avatar_url' | 'level'>;
+  profile: Pick<
+    FriendProfile,
+    'id' | 'username' | 'display_name' | 'avatar_url' | 'level'
+  >;
   action?: React.ReactNode;
 }) {
   return (
@@ -300,7 +305,9 @@ function FriendsList({
       await remind.mutateAsync(friendId);
       toast.success('Lembrete enviado!');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao enviar lembrete.');
+      toast.error(
+        err instanceof Error ? err.message : 'Erro ao enviar lembrete.',
+      );
     }
   }
 

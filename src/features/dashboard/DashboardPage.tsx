@@ -63,7 +63,9 @@ export function DashboardPage() {
 
   if (overviewQuery.isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}
+      >
         <Spinner size={36} />
       </div>
     );
@@ -75,12 +77,22 @@ export function DashboardPage() {
 
   return (
     <div style={{ display: 'grid', gap: '1.5rem', maxWidth: '60rem' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+      <header
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1rem',
+        }}
+      >
         <div>
           <h1 style={{ margin: 0, color: 'var(--brand-purple)' }}>
-            Olá, {liveProfile?.display_name || liveProfile?.username || 'estudante'}!
+            Olá,{' '}
+            {liveProfile?.display_name || liveProfile?.username || 'estudante'}!
           </h1>
-          <p style={{ margin: '0.25rem 0 0', color: 'var(--color-text-muted)' }}>
+          <p
+            style={{ margin: '0.25rem 0 0', color: 'var(--color-text-muted)' }}
+          >
             Continue de onde parou e acompanhe seu progresso.
           </p>
         </div>
@@ -103,7 +115,10 @@ export function DashboardPage() {
       >
         <StatCard label="XP global" value={xp.toLocaleString('pt-BR')} />
         <StatCard label="Nível" value={`L${level}`} />
-        <StatCard label="Sequência" value={`${liveProfile?.streak_count ?? 0} dias`} />
+        <StatCard
+          label="Sequência"
+          value={`${liveProfile?.streak_count ?? 0} dias`}
+        />
         <StatCard
           label="Divisão (média)"
           value={averageDivision(overview?.enrollments ?? [])}
@@ -125,13 +140,20 @@ export function DashboardPage() {
           }}
         >
           <div>
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.8rem',
+                color: 'var(--color-text-muted)',
+              }}
+            >
               Última aula estudada
             </p>
             <strong>{overview.lastStudied.lessonTitle}</strong>
             {overview.lastStudied.courseTitle && (
               <span style={{ color: 'var(--color-text-muted)' }}>
-                {' '}· {overview.lastStudied.courseTitle}
+                {' '}
+                · {overview.lastStudied.courseTitle}
               </span>
             )}
           </div>
@@ -184,7 +206,15 @@ export function DashboardPage() {
                   }}
                 >
                   <strong>{m.module.title}</strong>
-                  <ul style={{ listStyle: 'none', margin: '0.4rem 0 0', padding: 0, display: 'grid', gap: '0.3rem' }}>
+                  <ul
+                    style={{
+                      listStyle: 'none',
+                      margin: '0.4rem 0 0',
+                      padding: 0,
+                      display: 'grid',
+                      gap: '0.3rem',
+                    }}
+                  >
                     {m.lessons.map((l) => (
                       <li key={l.lesson.id}>
                         <button
@@ -208,14 +238,28 @@ export function DashboardPage() {
                           }}
                         >
                           <span>{l.lesson.title}</span>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                            {l.locked ? '🔒 Bloqueada' : l.completed ? '✓ Concluída' : 'Disponível'}
+                          <span
+                            style={{
+                              fontSize: '0.8rem',
+                              color: 'var(--color-text-muted)',
+                            }}
+                          >
+                            {l.locked
+                              ? '🔒 Bloqueada'
+                              : l.completed
+                                ? '✓ Concluída'
+                                : 'Disponível'}
                           </span>
                         </button>
                       </li>
                     ))}
                     {m.lessons.length === 0 && (
-                      <li style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                      <li
+                        style={{
+                          color: 'var(--color-text-muted)',
+                          fontSize: '0.9rem',
+                        }}
+                      >
                         Sem aulas neste módulo.
                       </li>
                     )}
@@ -228,9 +272,7 @@ export function DashboardPage() {
       )}
 
       {/* Friends ranking for the selected course (PAC/division, not global XP) */}
-      {selectedCourseId && (
-        <FriendsCourseRanking courseId={selectedCourseId} />
-      )}
+      {selectedCourseId && <FriendsCourseRanking courseId={selectedCourseId} />}
 
       {/* Medals (server-granted) + streak */}
       <MedalsPanel userId={userId} streakCount={liveProfile?.streak_count} />
@@ -250,7 +292,13 @@ export function DashboardPage() {
       >
         <div>
           <strong>Caderno</strong>
-          <p style={{ margin: '0.2rem 0 0', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+          <p
+            style={{
+              margin: '0.2rem 0 0',
+              fontSize: '0.9rem',
+              color: 'var(--color-text-muted)',
+            }}
+          >
             Suas anotações de estudo em um só lugar.
           </p>
         </div>
@@ -274,7 +322,13 @@ function StatCard({ label, value }: { label: string; value: string }) {
         padding: '0.8rem 1rem',
       }}
     >
-      <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+      <p
+        style={{
+          margin: 0,
+          fontSize: '0.78rem',
+          color: 'var(--color-text-muted)',
+        }}
+      >
         {label}
       </p>
       <strong style={{ fontSize: '1.3rem', color: 'var(--brand-purple)' }}>
@@ -310,7 +364,13 @@ function EnrollmentRowCard({
         gap: '0.4rem',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: '0.5rem',
+        }}
+      >
         <strong>{data.course.title}</strong>
         <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
           {progress}%

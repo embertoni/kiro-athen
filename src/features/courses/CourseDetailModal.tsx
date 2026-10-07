@@ -29,7 +29,11 @@ function StarRating({
   onChange: (v: number) => void;
 }) {
   return (
-    <div role="radiogroup" aria-label="Avaliação" style={{ display: 'flex', gap: '0.2rem' }}>
+    <div
+      role="radiogroup"
+      aria-label="Avaliação"
+      style={{ display: 'flex', gap: '0.2rem' }}
+    >
       {[1, 2, 3, 4, 5].map((n) => (
         <button
           key={n}
@@ -44,7 +48,8 @@ function StarRating({
             cursor: 'pointer',
             fontSize: '1.5rem',
             lineHeight: 1,
-            color: n <= value ? 'var(--brand-gold-dark)' : 'var(--color-border)',
+            color:
+              n <= value ? 'var(--brand-gold-dark)' : 'var(--color-border)',
           }}
         >
           ★
@@ -58,7 +63,10 @@ function StarRating({
  * Large overlay popup with full course details and actions (enroll, start,
  * rate 0-5, comment). Built on the shared Modal — intentionally NOT a route.
  */
-export function CourseDetailModal({ courseId, onClose }: CourseDetailModalProps) {
+export function CourseDetailModal({
+  courseId,
+  onClose,
+}: CourseDetailModalProps) {
   const { session } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
@@ -148,7 +156,11 @@ export function CourseDetailModal({ courseId, onClose }: CourseDetailModalProps)
                 Começar curso
               </Button>
             ) : (
-              <Button variant="primary" loading={enroll.isPending} onClick={handleEnroll}>
+              <Button
+                variant="primary"
+                loading={enroll.isPending}
+                onClick={handleEnroll}
+              >
                 Matricular
               </Button>
             )}
@@ -160,7 +172,9 @@ export function CourseDetailModal({ courseId, onClose }: CourseDetailModalProps)
       }
     >
       {detailQuery.isLoading && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+        <div
+          style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}
+        >
           <Spinner size={32} />
         </div>
       )}
@@ -182,23 +196,41 @@ export function CourseDetailModal({ courseId, onClose }: CourseDetailModalProps)
             }}
           />
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+              alignItems: 'center',
+            }}
+          >
+            <span
+              style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}
+            >
               /{detail.course.slug}
             </span>
             <span style={{ fontSize: '0.85rem' }}>
               por{' '}
               <strong>
-                {detail.creator?.display_name ?? detail.creator?.username ?? 'Desconhecido'}
+                {detail.creator?.display_name ??
+                  detail.creator?.username ??
+                  'Desconhecido'}
               </strong>
             </span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--brand-gold-dark)' }}>
+            <span
+              style={{ fontSize: '0.85rem', color: 'var(--brand-gold-dark)' }}
+            >
               ★ {detail.averageRating.toFixed(1)} ({detail.reviewCount})
             </span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-              {detail.studentCount} {detail.studentCount === 1 ? 'aluno' : 'alunos'}
+            <span
+              style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}
+            >
+              {detail.studentCount}{' '}
+              {detail.studentCount === 1 ? 'aluno' : 'alunos'}
             </span>
-            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+            <span
+              style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}
+            >
               {totalLessons} {totalLessons === 1 ? 'aula' : 'aulas'}
             </span>
           </div>
@@ -211,7 +243,9 @@ export function CourseDetailModal({ courseId, onClose }: CourseDetailModalProps)
           <section>
             <h3 style={{ marginBottom: '0.5rem' }}>Conteúdo</h3>
             {detail.modules.length === 0 && (
-              <p style={{ color: 'var(--color-text-muted)' }}>Sem módulos ainda.</p>
+              <p style={{ color: 'var(--color-text-muted)' }}>
+                Sem módulos ainda.
+              </p>
             )}
             {detail.modules.map((m) => (
               <div
@@ -247,7 +281,13 @@ export function CourseDetailModal({ courseId, onClose }: CourseDetailModalProps)
               }}
             >
               <h3 style={{ marginBottom: '0.5rem' }}>Sua avaliação</h3>
-              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.75rem',
+                  alignItems: 'center',
+                }}
+              >
                 <StarRating value={rating} onChange={setRating} />
                 <Button
                   size="sm"
@@ -270,7 +310,13 @@ export function CourseDetailModal({ courseId, onClose }: CourseDetailModalProps)
             }}
           >
             <h3 style={{ marginBottom: '0.5rem' }}>Comentários recentes</h3>
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: '0.5rem',
+                marginBottom: '0.75rem',
+              }}
+            >
               <input
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
@@ -294,11 +340,21 @@ export function CourseDetailModal({ courseId, onClose }: CourseDetailModalProps)
               </Button>
             </div>
             {detail.recentComments.length === 0 ? (
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+              <p
+                style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}
+              >
                 Seja o primeiro a comentar.
               </p>
             ) : (
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '0.5rem' }}>
+              <ul
+                style={{
+                  listStyle: 'none',
+                  margin: 0,
+                  padding: 0,
+                  display: 'grid',
+                  gap: '0.5rem',
+                }}
+              >
                 {detail.recentComments.map((c) => (
                   <li
                     key={c.id}
@@ -309,7 +365,9 @@ export function CourseDetailModal({ courseId, onClose }: CourseDetailModalProps)
                     }}
                   >
                     <strong style={{ fontSize: '0.85rem' }}>
-                      {c.author?.display_name ?? c.author?.username ?? 'Usuário'}
+                      {c.author?.display_name ??
+                        c.author?.username ??
+                        'Usuário'}
                     </strong>
                     <p style={{ margin: '0.2rem 0 0', fontSize: '0.9rem' }}>
                       {c.content}

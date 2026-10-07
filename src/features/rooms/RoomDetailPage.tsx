@@ -46,7 +46,8 @@ import {
   type RoomMemberView,
 } from './api';
 
-type Tab = 'content' | 'members' | 'announcements' | 'missions' | 'ranking' | 'pac';
+type Tab =
+  'content' | 'members' | 'announcements' | 'missions' | 'ranking' | 'pac';
 
 const TAB_LABELS: Record<Tab, string> = {
   content: 'Conteúdo',
@@ -67,7 +68,9 @@ export function RoomDetailPage() {
 
   if (detailQuery.isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}
+      >
         <Spinner size={36} />
       </div>
     );
@@ -84,7 +87,9 @@ export function RoomDetailPage() {
         <h1 style={{ margin: 0, color: 'var(--brand-purple)' }}>{room.name}</h1>
         <p style={{ margin: '0.25rem 0 0', color: 'var(--color-text-muted)' }}>
           {course?.title ?? 'Sem curso vinculado'} ·{' '}
-          {isEducator ? 'Você administra esta sala' : 'Você participa desta sala'}
+          {isEducator
+            ? 'Você administra esta sala'
+            : 'Você participa desta sala'}
         </p>
       </header>
 
@@ -93,7 +98,12 @@ export function RoomDetailPage() {
       {/* Tabs */}
       <nav
         role="tablist"
-        style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', borderBottom: '1px solid var(--color-border)' }}
+        style={{
+          display: 'flex',
+          gap: '0.25rem',
+          flexWrap: 'wrap',
+          borderBottom: '1px solid var(--color-border)',
+        }}
       >
         {(Object.keys(TAB_LABELS) as Tab[]).map((t) => (
           <button
@@ -108,7 +118,8 @@ export function RoomDetailPage() {
               cursor: 'pointer',
               fontWeight: 600,
               fontSize: '0.9rem',
-              color: tab === t ? 'var(--brand-purple)' : 'var(--color-text-muted)',
+              color:
+                tab === t ? 'var(--brand-purple)' : 'var(--color-text-muted)',
               borderBottom: `2px solid ${tab === t ? 'var(--brand-purple)' : 'transparent'}`,
             }}
           >
@@ -124,14 +135,23 @@ export function RoomDetailPage() {
         <MembersTab roomId={room.id} isEducator={isEducator} />
       )}
       {tab === 'announcements' && (
-        <AnnouncementsTab roomId={room.id} isEducator={isEducator} userId={userId} />
+        <AnnouncementsTab
+          roomId={room.id}
+          isEducator={isEducator}
+          userId={userId}
+        />
       )}
       {tab === 'missions' && (
         <MissionsTab roomId={room.id} isEducator={isEducator} userId={userId} />
       )}
       {tab === 'ranking' && <RankingTab roomId={room.id} />}
       {tab === 'pac' && (
-        <PacTab roomId={room.id} room={room} isEducator={isEducator} userId={userId} />
+        <PacTab
+          roomId={room.id}
+          room={room}
+          isEducator={isEducator}
+          userId={userId}
+        />
       )}
     </div>
   );
@@ -168,17 +188,40 @@ function EducatorCodePanel({ room }: { room: RoomRow }) {
         gap: '0.75rem',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+          flexWrap: 'wrap',
+        }}
+      >
         <div>
-          <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: '0.78rem',
+              color: 'var(--color-text-muted)',
+            }}
+          >
             Código de acesso {room.code_active ? '(ativo)' : '(inativo)'}
           </p>
-          <strong style={{ fontSize: '1.3rem', letterSpacing: '0.1em', color: 'var(--brand-purple)' }}>
+          <strong
+            style={{
+              fontSize: '1.3rem',
+              letterSpacing: '0.1em',
+              color: 'var(--brand-purple)',
+            }}
+          >
             {formatAccessCode(room.access_code)}
           </strong>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <Button size="sm" variant="ghost" onClick={() => copy(room.access_code, 'Código')}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => copy(room.access_code, 'Código')}
+          >
             Copiar código
           </Button>
           <Button size="sm" variant="ghost" onClick={() => copy(link, 'Link')}>
@@ -206,7 +249,9 @@ function EducatorCodePanel({ room }: { room: RoomRow }) {
             onClick={async () => {
               try {
                 await setActive.mutateAsync(!room.code_active);
-                toast.success(room.code_active ? 'Código desativado.' : 'Código ativado.');
+                toast.success(
+                  room.code_active ? 'Código desativado.' : 'Código ativado.',
+                );
               } catch {
                 toast.error('Não foi possível atualizar.');
               }
@@ -216,7 +261,14 @@ function EducatorCodePanel({ room }: { room: RoomRow }) {
           </Button>
         </div>
       </div>
-      <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--color-text-muted)', wordBreak: 'break-all' }}>
+      <p
+        style={{
+          margin: 0,
+          fontSize: '0.78rem',
+          color: 'var(--color-text-muted)',
+          wordBreak: 'break-all',
+        }}
+      >
         Link de entrada: {link}
       </p>
     </section>
@@ -227,28 +279,59 @@ function EducatorCodePanel({ room }: { room: RoomRow }) {
 // Conteúdo tab — launch lessons in ROOM context
 // ---------------------------------------------------------------------------
 
-function ContentTab({ roomId, courseId }: { roomId: string; courseId: string | null }) {
+function ContentTab({
+  roomId,
+  courseId,
+}: {
+  roomId: string;
+  courseId: string | null;
+}) {
   const navigate = useNavigate();
   const contentQuery = useRoomContent(courseId);
 
   if (!courseId) {
-    return <p style={{ color: 'var(--color-text-muted)' }}>Esta sala não tem curso vinculado.</p>;
+    return (
+      <p style={{ color: 'var(--color-text-muted)' }}>
+        Esta sala não tem curso vinculado.
+      </p>
+    );
   }
   if (contentQuery.isLoading) return <Spinner size={24} />;
-  if (contentQuery.isError) return <ErrorText>Não foi possível carregar o conteúdo.</ErrorText>;
+  if (contentQuery.isError)
+    return <ErrorText>Não foi possível carregar o conteúdo.</ErrorText>;
 
   const modules = contentQuery.data ?? [];
 
   return (
     <section style={{ display: 'grid', gap: '0.9rem' }}>
-      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-        As aulas estudadas aqui contam apenas para o seu desempenho interno da sala
-        (XP, PAC e progresso), nunca para o XP global.
+      <p
+        style={{
+          margin: 0,
+          fontSize: '0.85rem',
+          color: 'var(--color-text-muted)',
+        }}
+      >
+        As aulas estudadas aqui contam apenas para o seu desempenho interno da
+        sala (XP, PAC e progresso), nunca para o XP global.
       </p>
       {modules.map((m) => (
-        <div key={m.id} style={{ borderLeft: `3px solid ${m.color ?? '#5b2a86'}`, paddingLeft: '0.75rem' }}>
+        <div
+          key={m.id}
+          style={{
+            borderLeft: `3px solid ${m.color ?? '#5b2a86'}`,
+            paddingLeft: '0.75rem',
+          }}
+        >
           <strong>{m.title}</strong>
-          <ul style={{ listStyle: 'none', margin: '0.4rem 0 0', padding: 0, display: 'grid', gap: '0.3rem' }}>
+          <ul
+            style={{
+              listStyle: 'none',
+              margin: '0.4rem 0 0',
+              padding: 0,
+              display: 'grid',
+              gap: '0.3rem',
+            }}
+          >
             {m.lessons.map((l) => (
               <li key={l.id}>
                 <button
@@ -269,13 +352,19 @@ function ContentTab({ roomId, courseId }: { roomId: string; courseId: string | n
               </li>
             ))}
             {m.lessons.length === 0 && (
-              <li style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Sem aulas.</li>
+              <li
+                style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}
+              >
+                Sem aulas.
+              </li>
             )}
           </ul>
         </div>
       ))}
       {modules.length === 0 && (
-        <p style={{ color: 'var(--color-text-muted)' }}>O curso ainda não tem módulos.</p>
+        <p style={{ color: 'var(--color-text-muted)' }}>
+          O curso ainda não tem módulos.
+        </p>
       )}
     </section>
   );
@@ -285,7 +374,13 @@ function ContentTab({ roomId, courseId }: { roomId: string; courseId: string | n
 // Membros tab
 // ---------------------------------------------------------------------------
 
-function MembersTab({ roomId, isEducator }: { roomId: string; isEducator: boolean }) {
+function MembersTab({
+  roomId,
+  isEducator,
+}: {
+  roomId: string;
+  isEducator: boolean;
+}) {
   const toast = useToast();
   const membersQuery = useRoomMembers(roomId, false);
   const addMember = useAddMember(roomId);
@@ -293,7 +388,8 @@ function MembersTab({ roomId, isEducator }: { roomId: string; isEducator: boolea
   const [username, setUsername] = useState('');
 
   if (membersQuery.isLoading) return <Spinner size={24} />;
-  if (membersQuery.isError) return <ErrorText>Não foi possível carregar os membros.</ErrorText>;
+  if (membersQuery.isError)
+    return <ErrorText>Não foi possível carregar os membros.</ErrorText>;
 
   const members = membersQuery.data ?? [];
   const active = members.filter((m) => m.member.status === 'active');
@@ -307,14 +403,24 @@ function MembersTab({ roomId, isEducator }: { roomId: string; isEducator: boolea
       toast.success('Membro adicionado.');
       setUsername('');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Não foi possível adicionar.');
+      toast.error(
+        err instanceof Error ? err.message : 'Não foi possível adicionar.',
+      );
     }
   }
 
   return (
     <section style={{ display: 'grid', gap: '1rem' }}>
       {isEducator && (
-        <form onSubmit={handleAdd} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <form
+          onSubmit={handleAdd}
+          style={{
+            display: 'flex',
+            gap: '0.5rem',
+            alignItems: 'flex-end',
+            flexWrap: 'wrap',
+          }}
+        >
           <div style={{ flex: 1, minWidth: '12rem' }}>
             <Input
               label="Adicionar por usuário"
@@ -324,7 +430,11 @@ function MembersTab({ roomId, isEducator }: { roomId: string; isEducator: boolea
               autoComplete="off"
             />
           </div>
-          <Button type="submit" loading={addMember.isPending} disabled={!username.trim()}>
+          <Button
+            type="submit"
+            loading={addMember.isPending}
+            disabled={!username.trim()}
+          >
             Adicionar
           </Button>
         </form>
@@ -352,19 +462,33 @@ function MembersTab({ roomId, isEducator }: { roomId: string; isEducator: boolea
             />
           ))}
           {active.length === 0 && (
-            <p style={{ color: 'var(--color-text-muted)' }}>Nenhum membro ativo ainda.</p>
+            <p style={{ color: 'var(--color-text-muted)' }}>
+              Nenhum membro ativo ainda.
+            </p>
           )}
         </div>
       </div>
 
       {isEducator && removed.length > 0 && (
         <div>
-          <h3 style={{ fontSize: '0.95rem', marginBottom: '0.5rem', color: 'var(--color-text-muted)' }}>
+          <h3
+            style={{
+              fontSize: '0.95rem',
+              marginBottom: '0.5rem',
+              color: 'var(--color-text-muted)',
+            }}
+          >
             Removidos ({removed.length}) · histórico mantido
           </h3>
           <div style={{ display: 'grid', gap: '0.4rem' }}>
             {removed.map((m) => (
-              <MemberRow key={m.member.id} data={m} canRemove={false} removing={false} onRemove={() => {}} />
+              <MemberRow
+                key={m.member.id}
+                data={m}
+                canRemove={false}
+                removing={false}
+                onRemove={() => {}}
+              />
             ))}
           </div>
         </div>
@@ -384,7 +508,8 @@ function MemberRow({
   removing: boolean;
   onRemove: () => void;
 }) {
-  const name = data.profile?.display_name || data.profile?.username || 'Usuário';
+  const name =
+    data.profile?.display_name || data.profile?.username || 'Usuário';
   const isRemoved = data.member.status === 'removed';
   return (
     <div
@@ -403,7 +528,8 @@ function MemberRow({
         {name}
         {data.profile?.username && (
           <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>
-            {' '}@{data.profile.username}
+            {' '}
+            @{data.profile.username}
           </span>
         )}
       </strong>
@@ -411,7 +537,12 @@ function MemberRow({
         {data.member.xp_internal} XP interno
       </span>
       {canRemove && !isRemoved && (
-        <Button size="sm" variant="danger" loading={removing} onClick={onRemove}>
+        <Button
+          size="sm"
+          variant="danger"
+          loading={removing}
+          onClick={onRemove}
+        >
           Remover
         </Button>
       )}
@@ -442,7 +573,11 @@ function AnnouncementsTab({
     e.preventDefault();
     if (!title.trim() || !userId) return;
     try {
-      await create.mutateAsync({ authorId: userId, title: title.trim(), content });
+      await create.mutateAsync({
+        authorId: userId,
+        title: title.trim(),
+        content,
+      });
       toast.success('Aviso publicado.');
       setTitle('');
       setContent('');
@@ -454,9 +589,18 @@ function AnnouncementsTab({
   return (
     <section style={{ display: 'grid', gap: '1rem' }}>
       {isEducator && (
-        <form onSubmit={handleCreate} style={{ display: 'grid', gap: '0.5rem' }}>
-          <Input label="Título do aviso" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Conteúdo</label>
+        <form
+          onSubmit={handleCreate}
+          style={{ display: 'grid', gap: '0.5rem' }}
+        >
+          <Input
+            label="Título do aviso"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+            Conteúdo
+          </label>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -470,7 +614,11 @@ function AnnouncementsTab({
             }}
           />
           <div>
-            <Button type="submit" loading={create.isPending} disabled={!title.trim()}>
+            <Button
+              type="submit"
+              loading={create.isPending}
+              disabled={!title.trim()}
+            >
               Publicar aviso
             </Button>
           </div>
@@ -478,7 +626,9 @@ function AnnouncementsTab({
       )}
 
       {query.isLoading && <Spinner size={24} />}
-      {query.isError && <ErrorText>Não foi possível carregar os avisos.</ErrorText>}
+      {query.isError && (
+        <ErrorText>Não foi possível carregar os avisos.</ErrorText>
+      )}
       <div style={{ display: 'grid', gap: '0.5rem' }}>
         {(query.data ?? []).map((a) => (
           <article
@@ -490,22 +640,45 @@ function AnnouncementsTab({
               background: 'var(--color-surface)',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: '0.5rem',
+              }}
+            >
               <strong>{a.announcement.title}</strong>
-              <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                {new Date(a.announcement.created_at).toLocaleDateString('pt-BR')}
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  color: 'var(--color-text-muted)',
+                }}
+              >
+                {new Date(a.announcement.created_at).toLocaleDateString(
+                  'pt-BR',
+                )}
               </span>
             </div>
             {a.announcement.content && (
-              <p style={{ margin: '0.4rem 0 0', whiteSpace: 'pre-wrap' }}>{a.announcement.content}</p>
+              <p style={{ margin: '0.4rem 0 0', whiteSpace: 'pre-wrap' }}>
+                {a.announcement.content}
+              </p>
             )}
-            <p style={{ margin: '0.4rem 0 0', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+            <p
+              style={{
+                margin: '0.4rem 0 0',
+                fontSize: '0.75rem',
+                color: 'var(--color-text-muted)',
+              }}
+            >
               por {a.authorName}
             </p>
           </article>
         ))}
         {query.data?.length === 0 && (
-          <p style={{ color: 'var(--color-text-muted)' }}>Nenhum aviso ainda.</p>
+          <p style={{ color: 'var(--color-text-muted)' }}>
+            Nenhum aviso ainda.
+          </p>
         )}
       </div>
     </section>
@@ -558,9 +731,18 @@ function MissionsTab({
   return (
     <section style={{ display: 'grid', gap: '1rem' }}>
       {isEducator && (
-        <form onSubmit={handleCreate} style={{ display: 'grid', gap: '0.5rem' }}>
-          <Input label="Título da missão" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Descrição</label>
+        <form
+          onSubmit={handleCreate}
+          style={{ display: 'grid', gap: '0.5rem' }}
+        >
+          <Input
+            label="Título da missão"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+            Descrição
+          </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -595,11 +777,21 @@ function MissionsTab({
               onChange={(e) => setMinCorrect(e.target.value)}
             />
           </div>
-          <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: '0.78rem',
+              color: 'var(--color-text-muted)',
+            }}
+          >
             A recompensa é XP interno da sala — não afeta o XP global.
           </p>
           <div>
-            <Button type="submit" loading={create.isPending} disabled={!title.trim()}>
+            <Button
+              type="submit"
+              loading={create.isPending}
+              disabled={!title.trim()}
+            >
               Criar missão
             </Button>
           </div>
@@ -607,7 +799,9 @@ function MissionsTab({
       )}
 
       {query.isLoading && <Spinner size={24} />}
-      {query.isError && <ErrorText>Não foi possível carregar as missões.</ErrorText>}
+      {query.isError && (
+        <ErrorText>Não foi possível carregar as missões.</ErrorText>
+      )}
       <div style={{ display: 'grid', gap: '0.6rem' }}>
         {(query.data ?? []).map((m) => (
           <article
@@ -619,28 +813,77 @@ function MissionsTab({
               background: 'var(--color-surface)',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: '0.5rem',
+                flexWrap: 'wrap',
+              }}
+            >
               <strong>{m.mission.title}</strong>
-              <span style={{ fontSize: '0.78rem', color: 'var(--brand-purple)', fontWeight: 600 }}>
+              <span
+                style={{
+                  fontSize: '0.78rem',
+                  color: 'var(--brand-purple)',
+                  fontWeight: 600,
+                }}
+              >
                 +{m.mission.reward_xp} XP interno
               </span>
             </div>
             {m.mission.description && (
-              <p style={{ margin: '0.3rem 0 0', whiteSpace: 'pre-wrap' }}>{m.mission.description}</p>
+              <p style={{ margin: '0.3rem 0 0', whiteSpace: 'pre-wrap' }}>
+                {m.mission.description}
+              </p>
             )}
-            <div style={{ display: 'flex', gap: '1rem', margin: '0.4rem 0 0', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: '1rem',
+                margin: '0.4rem 0 0',
+                fontSize: '0.78rem',
+                color: 'var(--color-text-muted)',
+              }}
+            >
               <span>Mín. acertos: {m.mission.min_correct}</span>
               {m.mission.deadline && (
-                <span>Prazo: {new Date(m.mission.deadline).toLocaleDateString('pt-BR')}</span>
+                <span>
+                  Prazo:{' '}
+                  {new Date(m.mission.deadline).toLocaleDateString('pt-BR')}
+                </span>
               )}
             </div>
             {m.participants.length > 0 && (
-              <ul style={{ listStyle: 'none', margin: '0.5rem 0 0', padding: 0, display: 'grid', gap: '0.2rem' }}>
+              <ul
+                style={{
+                  listStyle: 'none',
+                  margin: '0.5rem 0 0',
+                  padding: 0,
+                  display: 'grid',
+                  gap: '0.2rem',
+                }}
+              >
                 {m.participants.map((p) => (
-                  <li key={p.userId} style={{ fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between' }}>
+                  <li
+                    key={p.userId}
+                    style={{
+                      fontSize: '0.82rem',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                    }}
+                  >
                     <span>{p.name}</span>
-                    <span style={{ color: p.completed ? 'var(--color-success)' : 'var(--color-text-muted)' }}>
-                      {p.completed ? '✓ Concluída' : `${Math.round(p.progress)}%`}
+                    <span
+                      style={{
+                        color: p.completed
+                          ? 'var(--color-success)'
+                          : 'var(--color-text-muted)',
+                      }}
+                    >
+                      {p.completed
+                        ? '✓ Concluída'
+                        : `${Math.round(p.progress)}%`}
                     </span>
                   </li>
                 ))}
@@ -649,7 +892,9 @@ function MissionsTab({
           </article>
         ))}
         {query.data?.length === 0 && (
-          <p style={{ color: 'var(--color-text-muted)' }}>Nenhuma missão ainda.</p>
+          <p style={{ color: 'var(--color-text-muted)' }}>
+            Nenhuma missão ainda.
+          </p>
         )}
       </div>
     </section>
@@ -664,7 +909,8 @@ function RankingTab({ roomId }: { roomId: string }) {
   const query = useRoomMembers(roomId, true);
 
   if (query.isLoading) return <Spinner size={24} />;
-  if (query.isError) return <ErrorText>Não foi possível carregar o ranking.</ErrorText>;
+  if (query.isError)
+    return <ErrorText>Não foi possível carregar o ranking.</ErrorText>;
 
   const ranked = sortByXpDesc(
     (query.data ?? []).map((m) => ({
@@ -676,10 +922,25 @@ function RankingTab({ roomId }: { roomId: string }) {
 
   return (
     <section style={{ display: 'grid', gap: '0.5rem' }}>
-      <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-        Classificação interna por XP da sala (apenas membros ativos). Sem período semanal.
+      <p
+        style={{
+          margin: 0,
+          fontSize: '0.82rem',
+          color: 'var(--color-text-muted)',
+        }}
+      >
+        Classificação interna por XP da sala (apenas membros ativos). Sem
+        período semanal.
       </p>
-      <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '0.35rem' }}>
+      <ol
+        style={{
+          listStyle: 'none',
+          margin: 0,
+          padding: 0,
+          display: 'grid',
+          gap: '0.35rem',
+        }}
+      >
         {ranked.map((m, i) => (
           <li
             key={m.member.id}
@@ -693,7 +954,14 @@ function RankingTab({ roomId }: { roomId: string }) {
               background: 'var(--color-surface)',
             }}
           >
-            <span style={{ width: '1.5rem', textAlign: 'center', fontWeight: 700, color: 'var(--brand-purple)' }}>
+            <span
+              style={{
+                width: '1.5rem',
+                textAlign: 'center',
+                fontWeight: 700,
+                color: 'var(--brand-purple)',
+              }}
+            >
               {i + 1}
             </span>
             <strong style={{ flex: 1, minWidth: 0 }}>{m.name}</strong>
@@ -703,7 +971,9 @@ function RankingTab({ roomId }: { roomId: string }) {
           </li>
         ))}
         {ranked.length === 0 && (
-          <li style={{ color: 'var(--color-text-muted)' }}>Sem membros ativos no ranking.</li>
+          <li style={{ color: 'var(--color-text-muted)' }}>
+            Sem membros ativos no ranking.
+          </li>
         )}
       </ol>
     </section>
@@ -736,7 +1006,8 @@ function PacTab({
   const setVisibility = useSetPacVisibility(roomId);
 
   if (query.isLoading) return <Spinner size={24} />;
-  if (query.isError) return <ErrorText>Não foi possível carregar o PAC.</ErrorText>;
+  if (query.isError)
+    return <ErrorText>Não foi possível carregar o PAC.</ErrorText>;
 
   const members = query.data ?? [];
 
@@ -745,7 +1016,9 @@ function PacTab({
   // room-level pac_visibility column (see findings — per-member visibility is
   // not modeled in the MVP schema, so this is room-level).
   const canSeeOthers =
-    isEducator || room.pac_visibility === 'members' || room.pac_visibility === 'public';
+    isEducator ||
+    room.pac_visibility === 'members' ||
+    room.pac_visibility === 'public';
 
   const visibleMembers = members.filter(
     (m) => canSeeOthers || m.member.user_id === userId,
@@ -761,14 +1034,22 @@ function PacTab({
             options={PAC_VISIBILITY_OPTIONS}
             onChange={async (e) => {
               try {
-                await setVisibility.mutateAsync(e.target.value as PacVisibility);
+                await setVisibility.mutateAsync(
+                  e.target.value as PacVisibility,
+                );
                 toast.success('Visibilidade atualizada.');
               } catch {
                 toast.error('Não foi possível atualizar.');
               }
             }}
           />
-          <p style={{ margin: '0.3rem 0 0', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+          <p
+            style={{
+              margin: '0.3rem 0 0',
+              fontSize: '0.78rem',
+              color: 'var(--color-text-muted)',
+            }}
+          >
             O educador sempre vê o PAC de todos; cada aluno sempre vê o próprio.
           </p>
         </div>
@@ -776,7 +1057,8 @@ function PacTab({
 
       <div style={{ display: 'grid', gap: '0.35rem' }}>
         {visibleMembers.map((m) => {
-          const name = m.profile?.display_name || m.profile?.username || 'Usuário';
+          const name =
+            m.profile?.display_name || m.profile?.username || 'Usuário';
           const d = pacDisplay(m.member.pac_internal);
           return (
             <div
@@ -794,7 +1076,15 @@ function PacTab({
               <strong style={{ flex: 1, minWidth: 0 }}>
                 {name}
                 {m.member.user_id === userId && (
-                  <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}> (você)</span>
+                  <span
+                    style={{
+                      color: 'var(--color-text-muted)',
+                      fontWeight: 400,
+                    }}
+                  >
+                    {' '}
+                    (você)
+                  </span>
                 )}
               </strong>
               <span
@@ -809,12 +1099,16 @@ function PacTab({
               >
                 {d.division}
               </span>
-              <strong style={{ width: '4rem', textAlign: 'right' }}>{d.label}</strong>
+              <strong style={{ width: '4rem', textAlign: 'right' }}>
+                {d.label}
+              </strong>
             </div>
           );
         })}
         {visibleMembers.length === 0 && (
-          <p style={{ color: 'var(--color-text-muted)' }}>Sem dados de PAC ainda.</p>
+          <p style={{ color: 'var(--color-text-muted)' }}>
+            Sem dados de PAC ainda.
+          </p>
         )}
       </div>
     </section>

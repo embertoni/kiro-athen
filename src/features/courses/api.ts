@@ -35,7 +35,8 @@ import { averageRating, type CatalogFilters } from './helpers';
 
 export const courseKeys = {
   all: ['courses'] as const,
-  catalog: (filters: CatalogFilters) => ['courses', 'catalog', filters] as const,
+  catalog: (filters: CatalogFilters) =>
+    ['courses', 'catalog', filters] as const,
   detail: (courseId: string) => ['courses', 'detail', courseId] as const,
   myEnrollments: (userId: string | undefined) =>
     ['courses', 'enrollments', userId] as const,
@@ -71,7 +72,8 @@ interface CourseWithJoins extends CourseRow {
 function mapCatalogRow(row: CourseWithJoins): CatalogCourse {
   return {
     course: row,
-    creatorName: row.creator?.display_name ?? row.creator?.username ?? 'Desconhecido',
+    creatorName:
+      row.creator?.display_name ?? row.creator?.username ?? 'Desconhecido',
     studentCount: row.enrollments?.[0]?.count ?? 0,
   };
 }
@@ -144,7 +146,10 @@ export interface DetailModule {
 
 export interface CourseDetail {
   course: CourseRow;
-  creator: Pick<ProfileRow, 'id' | 'username' | 'display_name' | 'avatar_url'> | null;
+  creator: Pick<
+    ProfileRow,
+    'id' | 'username' | 'display_name' | 'avatar_url'
+  > | null;
   modules: DetailModule[];
   averageRating: number;
   reviewCount: number;
@@ -240,7 +245,8 @@ export function useCourseDetail(
         modules,
         averageRating: averageRating(ratings),
         reviewCount: ratings.length,
-        recentComments: (commentsRes.data ?? []) as CourseDetail['recentComments'],
+        recentComments: (commentsRes.data ??
+          []) as CourseDetail['recentComments'],
         studentCount: enrollRes.count ?? 0,
         firstLessonId,
       };
@@ -511,7 +517,9 @@ export function useEnroll() {
     },
     onSuccess: (_data, input) => {
       qc.invalidateQueries({ queryKey: courseKeys.detail(input.courseId) });
-      qc.invalidateQueries({ queryKey: courseKeys.myEnrollments(input.userId) });
+      qc.invalidateQueries({
+        queryKey: courseKeys.myEnrollments(input.userId),
+      });
       qc.invalidateQueries({ queryKey: ['courses', 'catalog'] });
     },
   });

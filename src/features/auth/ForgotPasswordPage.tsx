@@ -27,7 +27,9 @@ export function ForgotPasswordPage() {
       setSent(true);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Erro ao enviar o e-mail de recuperação.',
+        err instanceof Error
+          ? err.message
+          : 'Erro ao enviar o e-mail de recuperação.',
       );
     } finally {
       setSubmitting(false);
@@ -54,7 +56,10 @@ export function ForgotPasswordPage() {
       subtitle="Enviaremos um link para redefinir sua senha."
       footer={<Link to="/login">Voltar para o login</Link>}
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}
+      >
         <Input
           label="E-mail"
           type="email"

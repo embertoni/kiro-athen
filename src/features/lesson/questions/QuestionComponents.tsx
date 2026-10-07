@@ -148,7 +148,10 @@ export function SumAlternativesQuestion({
     const set = new Set(selectedValues);
     if (set.has(index)) set.delete(index);
     else set.add(index);
-    const sum = [...set].reduce((acc, i) => acc + config.statements[i].value, 0);
+    const sum = [...set].reduce(
+      (acc, i) => acc + config.statements[i].value,
+      0,
+    );
     onChange({ sum });
   }
 
@@ -175,11 +178,19 @@ export function SumAlternativesQuestion({
               disabled={disabled}
               onChange={() => toggle(index)}
             />
-            <strong style={{ minWidth: '2.5rem' }}>{st.value.toString().padStart(2, '0')}</strong>
+            <strong style={{ minWidth: '2.5rem' }}>
+              {st.value.toString().padStart(2, '0')}
+            </strong>
           </label>
         );
       })}
-      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+      <p
+        style={{
+          margin: 0,
+          fontSize: '0.85rem',
+          color: 'var(--color-text-muted)',
+        }}
+      >
         Soma atual: <strong>{value?.sum ?? 0}</strong>
       </p>
     </div>

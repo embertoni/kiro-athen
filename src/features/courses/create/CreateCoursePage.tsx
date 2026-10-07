@@ -87,7 +87,9 @@ export function CreateCoursePage() {
   );
 
   function updateModule(mi: number, patch: Partial<ModuleDraft>) {
-    setModules((prev) => prev.map((m, i) => (i === mi ? { ...m, ...patch } : m)));
+    setModules((prev) =>
+      prev.map((m, i) => (i === mi ? { ...m, ...patch } : m)),
+    );
   }
 
   function updateLesson(mi: number, li: number, patch: Partial<LessonDraft>) {
@@ -268,7 +270,9 @@ export function CreateCoursePage() {
           <Select
             label="Visibilidade"
             value={visibility}
-            onChange={(e) => setVisibility(e.target.value as 'public' | 'private')}
+            onChange={(e) =>
+              setVisibility(e.target.value as 'public' | 'private')
+            }
             options={[
               { value: 'public', label: 'Pública (aparece no catálogo)' },
               { value: 'private', label: 'Privada (somente você)' },
@@ -278,7 +282,13 @@ export function CreateCoursePage() {
       </section>
 
       {modules.map((module, mi) => (
-        <section key={mi} style={{ ...card, borderLeft: `4px solid ${module.color ?? '#5b2a86'}` }}>
+        <section
+          key={mi}
+          style={{
+            ...card,
+            borderLeft: `4px solid ${module.color ?? '#5b2a86'}`,
+          }}
+        >
           <div
             style={{
               display: 'flex',
@@ -300,7 +310,9 @@ export function CreateCoursePage() {
               </Button>
             )}
           </div>
-          <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.75rem' }}>
+          <div
+            style={{ display: 'grid', gap: '0.75rem', marginTop: '0.75rem' }}
+          >
             <Input
               label="Título do módulo"
               value={module.title}
@@ -309,7 +321,9 @@ export function CreateCoursePage() {
             <Input
               label="Descrição do módulo"
               value={module.description}
-              onChange={(e) => updateModule(mi, { description: e.target.value })}
+              onChange={(e) =>
+                updateModule(mi, { description: e.target.value })
+              }
             />
             <Input
               label="Cor"
@@ -353,7 +367,9 @@ export function CreateCoursePage() {
                   </Button>
                 )}
               </div>
-              <div style={{ display: 'grid', gap: '0.6rem', marginTop: '0.6rem' }}>
+              <div
+                style={{ display: 'grid', gap: '0.6rem', marginTop: '0.6rem' }}
+              >
                 <Input
                   label="Título da aula"
                   value={lesson.title}
@@ -426,14 +442,22 @@ export function CreateCoursePage() {
                       size="sm"
                       onClick={() =>
                         updateLesson(mi, li, {
-                          questions: lesson.questions.filter((_, k) => k !== qi),
+                          questions: lesson.questions.filter(
+                            (_, k) => k !== qi,
+                          ),
                         })
                       }
                     >
                       Remover
                     </Button>
                   </div>
-                  <div style={{ display: 'grid', gap: '0.6rem', marginTop: '0.5rem' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gap: '0.6rem',
+                      marginTop: '0.5rem',
+                    }}
+                  >
                     <Select
                       label="Tipo"
                       value={question.type}
@@ -474,7 +498,10 @@ export function CreateCoursePage() {
                     updateLesson(mi, li, {
                       questions: [
                         ...lesson.questions,
-                        emptyQuestion('multiple_choice', lesson.questions.length),
+                        emptyQuestion(
+                          'multiple_choice',
+                          lesson.questions.length,
+                        ),
                       ],
                     })
                   }
@@ -492,7 +519,10 @@ export function CreateCoursePage() {
               size="sm"
               onClick={() =>
                 updateModule(mi, {
-                  lessons: [...module.lessons, emptyLesson(module.lessons.length)],
+                  lessons: [
+                    ...module.lessons,
+                    emptyLesson(module.lessons.length),
+                  ],
                 })
               }
             >
@@ -505,7 +535,9 @@ export function CreateCoursePage() {
       <Button
         type="button"
         variant="ghost"
-        onClick={() => setModules((prev) => [...prev, emptyModule(prev.length)])}
+        onClick={() =>
+          setModules((prev) => [...prev, emptyModule(prev.length)])
+        }
       >
         + Adicionar módulo
       </Button>

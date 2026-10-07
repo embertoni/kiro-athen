@@ -58,7 +58,10 @@ export function LoginPage() {
         </>
       }
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}
+      >
         <Input
           label="E-mail ou nome de usuário"
           value={identifier}

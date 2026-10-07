@@ -65,17 +65,29 @@ export function RoomsListPage() {
       }
       await roomsQuery.refetch();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Não foi possível entrar.');
+      toast.error(
+        err instanceof Error ? err.message : 'Não foi possível entrar.',
+      );
     }
   }
 
   return (
     <div style={{ display: 'grid', gap: '1.5rem', maxWidth: '56rem' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+      <header
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          flexWrap: 'wrap',
+        }}
+      >
         <div>
           <h1 style={{ margin: 0, color: 'var(--brand-purple)' }}>Salas</h1>
-          <p style={{ margin: '0.25rem 0 0', color: 'var(--color-text-muted)' }}>
-            Estude em salas com desempenho, ranking e PAC isolados do seu perfil global.
+          <p
+            style={{ margin: '0.25rem 0 0', color: 'var(--color-text-muted)' }}
+          >
+            Estude em salas com desempenho, ranking e PAC isolados do seu perfil
+            global.
           </p>
         </div>
         {isEducator && (
@@ -95,7 +107,15 @@ export function RoomsListPage() {
         }}
       >
         <h2 style={{ fontSize: '1rem', marginTop: 0 }}>Entrar com um código</h2>
-        <form onSubmit={handleJoin} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <form
+          onSubmit={handleJoin}
+          style={{
+            display: 'flex',
+            gap: '0.5rem',
+            alignItems: 'flex-end',
+            flexWrap: 'wrap',
+          }}
+        >
           <div style={{ flex: 1, minWidth: '12rem' }}>
             <Input
               label="Código de acesso"
@@ -105,18 +125,26 @@ export function RoomsListPage() {
               autoComplete="off"
             />
           </div>
-          <Button type="submit" loading={joinMutation.isPending} disabled={!joinCode}>
+          <Button
+            type="submit"
+            loading={joinMutation.isPending}
+            disabled={!joinCode}
+          >
             Entrar
           </Button>
         </form>
       </section>
 
       {roomsQuery.isLoading && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+        <div
+          style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}
+        >
           <Spinner size={32} />
         </div>
       )}
-      {roomsQuery.isError && <ErrorText>Não foi possível carregar suas salas.</ErrorText>}
+      {roomsQuery.isError && (
+        <ErrorText>Não foi possível carregar suas salas.</ErrorText>
+      )}
 
       {roomsQuery.data && (
         <>
@@ -190,11 +218,23 @@ function RoomGroup({
             >
               <div style={{ minWidth: 0 }}>
                 <strong>{r.room.name}</strong>
-                <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
-                  {r.courseTitle ?? 'Sem curso vinculado'} · {r.memberCount} membro(s)
+                <div
+                  style={{
+                    fontSize: '0.82rem',
+                    color: 'var(--color-text-muted)',
+                  }}
+                >
+                  {r.courseTitle ?? 'Sem curso vinculado'} · {r.memberCount}{' '}
+                  membro(s)
                 </div>
               </div>
-              <span style={{ fontSize: '0.8rem', color: 'var(--brand-purple)', fontWeight: 600 }}>
+              <span
+                style={{
+                  fontSize: '0.8rem',
+                  color: 'var(--brand-purple)',
+                  fontWeight: 600,
+                }}
+              >
                 {r.relation === 'educator' ? 'Administrador' : 'Participante'}
               </span>
             </button>
@@ -243,7 +283,9 @@ function CreateRoomModal({
       toast.success('Sala criada!');
       onCreated(room.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Não foi possível criar a sala.');
+      setError(
+        err instanceof Error ? err.message : 'Não foi possível criar a sala.',
+      );
     }
   }
 
@@ -289,9 +331,15 @@ function CreateRoomModal({
           />
         )}
         <ErrorText>{error}</ErrorText>
-        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-          Um código de acesso será gerado automaticamente. Você poderá regenerá-lo
-          ou desativá-lo depois.
+        <p
+          style={{
+            margin: 0,
+            fontSize: '0.8rem',
+            color: 'var(--color-text-muted)',
+          }}
+        >
+          Um código de acesso será gerado automaticamente. Você poderá
+          regenerá-lo ou desativá-lo depois.
         </p>
       </form>
     </Modal>

@@ -45,7 +45,9 @@ export function ResetPasswordPage() {
       setDone(true);
       window.setTimeout(() => navigate('/login', { replace: true }), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao redefinir a senha.');
+      setError(
+        err instanceof Error ? err.message : 'Erro ao redefinir a senha.',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -53,7 +55,10 @@ export function ResetPasswordPage() {
 
   if (done) {
     return (
-      <AuthCard title="Senha redefinida" footer={<Link to="/login">Ir para o login</Link>}>
+      <AuthCard
+        title="Senha redefinida"
+        footer={<Link to="/login">Ir para o login</Link>}
+      >
         <p style={{ margin: 0, color: 'var(--color-text)' }}>
           Sua senha foi atualizada. Redirecionando para o login...
         </p>
@@ -76,8 +81,14 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <AuthCard title="Redefinir senha" subtitle="Escolha uma nova senha para sua conta.">
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+    <AuthCard
+      title="Redefinir senha"
+      subtitle="Escolha uma nova senha para sua conta."
+    >
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}
+      >
         <Input
           label="Nova senha"
           type="password"

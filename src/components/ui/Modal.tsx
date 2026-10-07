@@ -93,7 +93,13 @@ export function Modal({
             borderBottom: '1px solid var(--color-border)',
           }}
         >
-          <h2 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--brand-purple)' }}>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: '1.1rem',
+              color: 'var(--brand-purple)',
+            }}
+          >
             {title}
           </h2>
           <button

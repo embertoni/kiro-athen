@@ -9,11 +9,7 @@
  * context into finalize_attempt), which keeps room XP internal and never global.
  */
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type {
   AnnouncementRow,
@@ -35,7 +31,8 @@ export const roomKeys = {
   mine: (userId: string | undefined) => ['rooms', 'mine', userId] as const,
   detail: (roomId: string) => ['rooms', 'detail', roomId] as const,
   members: (roomId: string) => ['rooms', 'members', roomId] as const,
-  announcements: (roomId: string) => ['rooms', 'announcements', roomId] as const,
+  announcements: (roomId: string) =>
+    ['rooms', 'announcements', roomId] as const,
   missions: (roomId: string) => ['rooms', 'missions', roomId] as const,
 };
 
@@ -58,7 +55,10 @@ export interface MyRooms {
 
 export interface RoomMemberView {
   member: RoomMemberRow;
-  profile: Pick<ProfileRow, 'id' | 'username' | 'display_name' | 'avatar_url'> | null;
+  profile: Pick<
+    ProfileRow,
+    'id' | 'username' | 'display_name' | 'avatar_url'
+  > | null;
 }
 
 export interface RoomDetail {
@@ -143,7 +143,10 @@ export function useMyRooms(userId: string | undefined) {
 // Room detail + members
 // ---------------------------------------------------------------------------
 
-export function useRoomDetail(roomId: string | undefined, userId: string | undefined) {
+export function useRoomDetail(
+  roomId: string | undefined,
+  userId: string | undefined,
+) {
   return useQuery<RoomDetail>({
     enabled: !!roomId,
     queryKey: roomKeys.detail(roomId ?? ''),
@@ -268,7 +271,8 @@ export function useCreateRoom(educatorId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: Omit<CreateRoomInput, 'educatorId'>) => {
-      if (!educatorId) throw new Error('Sessão expirada. Faça login novamente.');
+      if (!educatorId)
+        throw new Error('Sessão expirada. Faça login novamente.');
       return createRoom({ ...input, educatorId });
     },
     onSuccess: () => {
@@ -293,7 +297,9 @@ export function useRegenerateCode(roomId: string) {
         if (!error) return data;
         if ((error as { code?: string }).code !== '23505') throw error;
       }
-      throw new Error('Não foi possível gerar um código único. Tente novamente.');
+      throw new Error(
+        'Não foi possível gerar um código único. Tente novamente.',
+      );
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: roomKeys.detail(roomId) });

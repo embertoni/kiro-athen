@@ -5,11 +5,7 @@
  * sessions. Pages are ordered by `position`; new pages append to the end.
  */
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type { NotebookPageRow, NotebookRow } from '@/types/database';
 
@@ -139,7 +135,10 @@ export function useSavePage(notebookId: string | undefined) {
     }): Promise<NotebookPageRow> => {
       const { data, error } = await supabase
         .from('notebook_pages')
-        .update({ title: input.title.trim() || 'Página', content: input.content })
+        .update({
+          title: input.title.trim() || 'Página',
+          content: input.content,
+        })
         .eq('id', input.id)
         .select('*')
         .single();
