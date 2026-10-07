@@ -12,6 +12,10 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import type { Database } from '@/types/database';
+
+/** Names of the tables the admin CRUD may operate on. */
+type CrudTable = keyof Database['public']['Tables'];
 
 /** The admin-manageable entities and their list columns. */
 export type CrudEntity = 'profiles' | 'courses' | 'rooms';
@@ -28,7 +32,7 @@ export interface CrudColumn {
 export interface CrudEntityConfig {
   entity: CrudEntity;
   label: string;
-  table: string;
+  table: CrudTable;
   idKey: string;
   orderBy: string;
   columns: CrudColumn[];
@@ -122,6 +126,40 @@ export function crudConfig(entity: CrudEntity): CrudEntityConfig {
 
 export type CrudRow = Record<string, unknown>;
 
+/** Minimal result shape returned by the generic CRUD query builder. */
+type CrudResult<T> = Promise<{
+  data: T | null;
+  error: { message: string } | null;
+}>;
+
+/**
+ * Narrow view of the Supabase client for the generic admin CRUD.
+ *
+ * The CRUD picks its table at runtime (`CrudEntityConfig.table`), so the typed
+ * client cannot resolve a single per-table row/insert/update shape and would
+ * reject `.select`/`.update`/`.delete` with "not assignable to type 'never'".
+ * This interface describes exactly the generic operations the CRUD performs
+ * with widened (`CrudRow`) payloads; `crudClient` casts the real client to it,
+ * confining the cast to this one boundary. The server (is_admin RLS) remains
+ * the authority over what these operations may actually read or write.
+ */
+interface CrudQueryClient {
+  from(table: CrudTable): {
+    select(columns: string): {
+      order(
+        column: string,
+        opts: { ascending: boolean },
+      ): { limit(count: number): CrudResult<CrudRow[]> };
+    };
+    update(values: CrudRow): {
+      eq(column: string, value: string): CrudResult<null>;
+    };
+    delete(): { eq(column: string, value: string): CrudResult<null> };
+  };
+}
+
+const crudClient = supabase as unknown as CrudQueryClient;
+
 export const crudKeys = {
   list: (entity: CrudEntity) => ['crud', entity] as const,
 };
@@ -135,13 +173,13 @@ export function useCrudList(entity: CrudEntity) {
       const selectCols = Array.from(
         new Set([cfg.idKey, cfg.orderBy, ...cfg.columns.map((c) => c.key)]),
       ).join(', ');
-      const { data, error } = await supabase
+      const { data, error } = await crudClient
         .from(cfg.table)
         .select(selectCols)
         .order(cfg.orderBy, { ascending: false })
         .limit(200);
       if (error) throw error;
-      return (data ?? []) as unknown as CrudRow[];
+      return data ?? [];
     },
   });
 }
@@ -168,7 +206,7 @@ export function useCrudUpdate(entity: CrudEntity) {
           patch[key] = coerceValue(input.patch[key]);
         }
       }
-      const { error } = await supabase
+      const { error } = await crudClient
         .from(cfg.table)
         .update(patch)
         .eq(cfg.idKey, input.id);
@@ -186,7 +224,7 @@ export function useCrudDelete(entity: CrudEntity) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabase
+      const { error } = await crudClient
         .from(cfg.table)
         .delete()
         .eq(cfg.idKey, id);
