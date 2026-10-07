@@ -9,6 +9,8 @@ import { NotFoundPage } from '@/routes/NotFoundPage';
 import { LandingPage } from '@/features/landing/LandingPage';
 import { CatalogPage } from '@/features/courses/CatalogPage';
 import { CreateCoursePage } from '@/features/courses/create/CreateCoursePage';
+import { DashboardPage } from '@/features/dashboard/DashboardPage';
+import { LessonView } from '@/features/lesson/LessonView';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RegisterPage } from '@/features/auth/RegisterPage';
 import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage';
@@ -40,24 +42,8 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AppShell />}>
               <Route path="/catalog" element={<CatalogPage />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <PlaceholderPage
-                    title="Painel"
-                    description="Seu progresso, XP, nível, divisão e atividades."
-                  />
-                }
-              />
-              <Route
-                path="/lesson/:id"
-                element={
-                  <PlaceholderPage
-                    title="Aula"
-                    description="Execução da aula com questões e correção."
-                  />
-                }
-              />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/lesson/:id" element={<LessonView />} />
               <Route
                 path="/profile"
                 element={
