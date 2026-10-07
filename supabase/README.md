@@ -46,6 +46,7 @@ functions).
 | `0011_rls_policies.sql` | RLS enabled + policies on every table |
 | `0012_triggers.sql` | new-user, updated_at, role immutability, featured-medal guard |
 | `0013_seed.sql` | medal catalog (required) + optional demo content |
+| `0014_username_to_email.sql` | `username_to_email()` for login-by-username |
 
 ## Server-authoritative functions (`0010`)
 
@@ -62,6 +63,7 @@ functions).
 | `grant_medals(user_id)` | idempotent medal rules |
 | `join_room(access_code)` | self-join a room with a valid, active code |
 | `is_admin()` | true when the caller's profile role is `admin` (used by `/crud` RLS) |
+| `username_to_email(username)` | resolves a username to its auth email for login-by-username (SECURITY DEFINER; `0014`) |
 
 ### `finalize_attempt` context rules
 

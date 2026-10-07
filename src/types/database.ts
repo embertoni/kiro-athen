@@ -526,6 +526,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: boolean;
       };
+      username_to_email: {
+        Args: { p_username: string };
+        Returns: string | null;
+      };
     };
     Enums: {
       user_role: UserRole;
