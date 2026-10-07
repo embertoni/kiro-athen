@@ -7,6 +7,8 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PlaceholderPage } from '@/components/layout/PlaceholderPage';
 import { NotFoundPage } from '@/routes/NotFoundPage';
 import { LandingPage } from '@/features/landing/LandingPage';
+import { CatalogPage } from '@/features/courses/CatalogPage';
+import { CreateCoursePage } from '@/features/courses/create/CreateCoursePage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RegisterPage } from '@/features/auth/RegisterPage';
 import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage';
@@ -37,15 +39,7 @@ export default function App() {
           {/* Authenticated routes (session required) */}
           <Route element={<ProtectedRoute />}>
             <Route element={<AppShell />}>
-              <Route
-                path="/catalog"
-                element={
-                  <PlaceholderPage
-                    title="Catálogo"
-                    description="Explore e inscreva-se em cursos públicos."
-                  />
-                }
-              />
+              <Route path="/catalog" element={<CatalogPage />} />
               <Route
                 path="/dashboard"
                 element={
@@ -136,15 +130,7 @@ export default function App() {
                   />
                 }
               />
-              <Route
-                path="/create"
-                element={
-                  <PlaceholderPage
-                    title="Criar curso"
-                    description="Criação e edição de cursos (educadores)."
-                  />
-                }
-              />
+              <Route path="/create" element={<CreateCoursePage />} />
             </Route>
           </Route>
 
