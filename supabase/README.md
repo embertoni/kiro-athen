@@ -46,7 +46,7 @@ functions).
 | `0011_rls_policies.sql`                             | RLS enabled + policies on every table                                                                                                                                                                      |
 | `0012_triggers.sql`                                 | new-user, updated_at, role immutability, featured-medal guard                                                                                                                                              |
 | `0013_seed.sql`                                     | medal catalog (required) + optional demo content                                                                                                                                                           |
-| `0014_username_to_email.sql`                        | `username_to_email()` for login-by-username                                                                                                                                                                |
+| `0014_username_to_email.sql`                        | `resolve_login_email(username, password)` for login-by-username (password-gated; no raw-email harvesting)                                                                                                   |
 | `0015_rankings.sql`                                 | `global_ranking` view + `friends_course_pac()` RPC for the gamification rankings (no weekly period)                                                                                                        |
 | `0016_notifications_social_account.sql`             | `profiles.notification_preferences` column; SECURITY DEFINER notification creators (friend request, room invite, mission, course update, study reminder); `search_profiles()`; soft `deactivate_account()` |
 
@@ -65,7 +65,7 @@ functions).
 | `grant_medals(user_id)`                           | idempotent medal rules                                                                                                                   |
 | `join_room(access_code)`                          | self-join a room with a valid, active code                                                                                               |
 | `is_admin()`                                      | true when the caller's profile role is `admin` (used by `/crud` RLS)                                                                     |
-| `username_to_email(username)`                     | resolves a username to its auth email for login-by-username (SECURITY DEFINER; `0014`)                                                   |
+| `resolve_login_email(username, password)`         | resolves a username to its auth email for login-by-username, but ONLY when the password matches (bcrypt check vs `auth.users`); returns NULL otherwise so it cannot harvest emails (SECURITY DEFINER; `0014`) |
 | `friends_course_pac(course_id)`                   | per-course PAC/division for the caller + their accepted friends, course-context attempts only (SECURITY DEFINER, friends-scoped; `0015`) |
 | `send_study_reminder(friend_id)`                  | create a `lembrete_estudo` notification for an accepted friend (`0016`)                                                                  |
 | `notify_friend_request(friendship_id)`            | notify the addressee of a pending friend request (`0016`)                                                                                |
@@ -103,16 +103,27 @@ modeled in the MVP schema — the toggle is room-level.
 
 ### `finalize_attempt` context rules
 
+- **Ownership**: although `SECURITY DEFINER`, the function rejects callers who
+  are not the attempt owner (or an admin), so a user cannot finalize/re-grade
+  another user's attempt.
+- **Idempotency**: XP/room-XP, the `completions` insert, enrollment/progress,
+  `touch_streak` and `grant_medals` run **only on the first finalize** (when
+  `finished_at` was NULL before the call). A repeated RPC re-grades and
+  re-reports totals but never double-counts XP.
 - **Course context** (`attempt.room_id IS NULL`): adds `xp_earned` to
-  `profiles.xp_global`, recomputes `level`, updates `enrollments.progress`.
+  `profiles.xp_global`, recomputes `level`, auto-enrolls and updates
+  `enrollments.progress` — but **only for a course the user may actually enroll
+  in** (`published + public`, or one the user created, or one they are already
+  enrolled in). This mirrors the `enrollments_insert_own` policy so the
+  SECURITY DEFINER path cannot self-enroll a user into a draft/private course.
 - **Room context** (`attempt.room_id IS NOT NULL`): updates
   `room_members.xp_internal / progress / pac_internal` **only**. It never
   touches global XP.
 
-In both cases it grades every stored answer, writes
-`correct_count / total_count / xp_earned`, inserts a `completions` row when all
-of the lesson's questions have been answered, then calls `touch_streak` and
-`grant_medals`.
+In both cases it grades every stored answer and writes
+`correct_count / total_count / xp_earned`. On the first finalize it also inserts
+a `completions` row when all of the lesson's questions have been answered, then
+calls `touch_streak` and `grant_medals`.
 
 ## Question `config` jsonb shapes
 

@@ -135,21 +135,24 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
 };
 
 /**
- * Medal rule keys. The SQL layer owns the exact award conditions; these keys let
- * the UI label and render earned medals. Out-of-scope (section 17) medals such as
- * "Top da semana", joint streaks and educator-created medals are intentionally
- * excluded.
+ * Medal codes. These MIRROR the `medals.code` catalog seeded in SQL (0013) and
+ * awarded by `grant_medals()` in 0010 — keep them byte-for-byte in sync.
+ *   first_lesson — completed at least one lesson
+ *   on_fire      — streak_count reached 7
+ *   bookworm     — completed at least 5 courses
+ *   owl          — completed at least 10 lessons
+ * The medals UI reads the DB catalog (name/description/icon) directly; this
+ * constant exists only as a typed parity reference for the SQL codes. Out-of-scope
+ * (section 17) medals such as "Top da semana", joint streaks and educator-created
+ * medals are intentionally excluded.
  */
-export const MEDAL_RULE_KEYS = [
-  'first_course_completed',
-  'ten_courses_completed',
-  'level_5_reached',
-  'diamante_division',
-  'streak_7_days',
-  'streak_30_days',
-  'perfect_pac',
+export const MEDAL_CODES = [
+  'first_lesson',
+  'on_fire',
+  'bookworm',
+  'owl',
 ] as const;
-export type MedalRuleKey = (typeof MEDAL_RULE_KEYS)[number];
+export type MedalCode = (typeof MEDAL_CODES)[number];
 
 /** Timezone used for streak/day-boundary calculations (one-day tolerance). */
 export const STREAK_TIMEZONE = 'America/Sao_Paulo';

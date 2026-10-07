@@ -152,9 +152,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let email = trimmed;
 
     if (!looksLikeEmail(trimmed)) {
-      // Resolve a username to its auth email via a SECURITY DEFINER RPC.
-      const { data, error } = await supabase.rpc('username_to_email', {
+      // Resolve a username to its auth email via a SECURITY DEFINER RPC that
+      // only returns the email when the password is also correct. This avoids
+      // exposing arbitrary users' emails to unauthenticated callers (no
+      // harvesting primitive); the resolved email is then re-verified by
+      // supabase.auth.signInWithPassword below.
+      const { data, error } = await supabase.rpc('resolve_login_email', {
         p_username: trimmed,
+        p_password: password,
       });
       if (error) throw error;
       if (!data) {

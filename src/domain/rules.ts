@@ -7,7 +7,6 @@
  */
 
 import {
-  DIVISION_BANDS,
   LEVEL6_FLOOR,
   LEVEL_STEP_ABOVE,
   LEVEL_THRESHOLDS,
@@ -42,15 +41,19 @@ export function levelForXp(xp: number): number {
 /**
  * Resolve the division for a PAC value (0-100).
  * Bronze 0-59, Prata 60-74, Gold 75-84, Platina 85-94, Diamante 95-100.
+ *
+ * Uses the same OPEN comparisons as the SQL `division_for_pac`
+ * (`< 60 / <= 74 / <= 84 / <= 94 / else`) so fractional PAC values that fall in
+ * a band gap (e.g. 59.5, 74.5) classify identically on the client and server.
+ * The integer DIVISION_BANDS table is still the parity source for the band
+ * edges; it is asserted against these boundaries in the domain tests.
  */
 export function divisionForPac(pac: number): Division {
   const value = clampPac(pac);
-  for (const band of DIVISION_BANDS) {
-    if (value >= band.min && value <= band.max) {
-      return band.division;
-    }
-  }
-  // Defensive fallback (should be unreachable given clamping).
+  if (value < 60) return 'Bronze';
+  if (value <= 74) return 'Prata';
+  if (value <= 84) return 'Gold';
+  if (value <= 94) return 'Platina';
   return 'Diamante';
 }
 

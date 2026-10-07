@@ -84,6 +84,17 @@ describe('divisionForPac', () => {
   it('clamps the low end to Bronze', () => {
     expect(divisionForPac(0)).toBe('Bronze');
   });
+
+  it('classifies fractional PAC in the band gaps like the SQL (open bounds)', () => {
+    // PAC = correct/total*100 is frequently fractional; these would regress to
+    // 'Diamante' under the old integer-band lookup. They must match
+    // SQL division_for_pac: < 60 -> Bronze, <= 74 -> Prata, <= 84 -> Gold.
+    expect(divisionForPac(59.5)).toBe('Bronze');
+    expect(divisionForPac(60.5)).toBe('Prata');
+    expect(divisionForPac(74.5)).toBe('Gold');
+    expect(divisionForPac(84.5)).toBe('Platina');
+    expect(divisionForPac(94.5)).toBe('Diamante');
+  });
 });
 
 describe('pacFromCounts', () => {

@@ -585,8 +585,8 @@ export interface Database {
         Args: { p_room_id: string };
         Returns: boolean;
       };
-      username_to_email: {
-        Args: { p_username: string };
+      resolve_login_email: {
+        Args: { p_username: string; p_password: string };
         Returns: string | null;
       };
       friends_course_pac: {
