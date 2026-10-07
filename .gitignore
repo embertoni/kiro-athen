@@ -1,0 +1,22 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+
+# Env files (keep .env.example)
+.env
+.env.*
+!.env.example
+
+# Test coverage
+coverage
+
+# Deploy
+.vercel
+
+# Editor / OS
+*.local
+.DS_Store
+*.log
