@@ -24,9 +24,9 @@ Storage); deploy na Vercel.
    cp .env.example .env.local
    ```
    Defina `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (Project Settings -> API).
-3. Aplique as migracoes SQL em `supabase/migrations/` (via `supabase db push` ou
-   colando no SQL editor na ordem dos arquivos). _As migracoes chegam em features
-   posteriores._
+3. Aplique as migracoes SQL em `supabase/migrations/` (via `supabase db reset` /
+   `supabase db push` ou colando no SQL editor na ordem dos arquivos). O banco e
+   totalmente reproduzivel a partir desses arquivos. Ver `supabase/README.md`.
 4. Rode o ambiente de desenvolvimento:
    ```bash
    npm run dev
