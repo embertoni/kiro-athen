@@ -26,7 +26,7 @@ Storage); deploy na Vercel.
    Defina `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (Project Settings ->
    API).
 3. Aplique as migracoes SQL em `supabase/migrations/` **na ordem dos arquivos**
-   (`0001_` -> `0016_`), via `supabase db reset` / `supabase db push` ou colando
+   (`0001_` -> `0020_`), via `supabase db reset` / `supabase db push` ou colando
    no SQL editor em ordem. O banco e totalmente reproduzivel a partir desses
    arquivos. Ver `supabase/README.md`.
 4. Rode o ambiente de desenvolvimento:
@@ -35,7 +35,7 @@ Storage); deploy na Vercel.
    ```
 
 > **Banco de dados / setup manual:** para os passos manuais de aplicacao das
-> migracoes (incluindo as mais recentes `0017`-`0019`), regeneracao dos tipos
+> migracoes (incluindo as mais recentes `0017`-`0020`), regeneracao dos tipos
 > TypeScript e pre-requisitos de ambiente, veja
 > [`docs/DATABASE_SETUP.md`](docs/DATABASE_SETUP.md).
 
