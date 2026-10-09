@@ -1,21 +1,27 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useToast } from '@/components/ui/Toast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
 import { extractErrorMessage, formatError } from '@/lib/errors';
 import type { QuestionType, Json, CourseStatus } from '@/types/database';
 import {
+  useCourseDetail,
   useSaveCourse,
   type CourseDraft,
   type ModuleDraft,
   type LessonDraft,
   type QuestionDraft,
 } from '../api';
-import { slugify, isExistingContentLocked } from '../helpers';
+import {
+  slugify,
+  isExistingContentLocked,
+  courseDetailToDraft,
+} from '../helpers';
 import {
   QUESTION_TYPE_LABELS,
   defaultXpFor,
@@ -67,10 +73,16 @@ const card: React.CSSProperties = {
  * as draft or publish.
  */
 export function CreateCoursePage() {
-  const { session } = useAuth();
+  const { session, isAdmin } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
   const save = useSaveCourse(session?.user?.id);
+
+  // Edit mode is driven entirely by the :courseId route param (see App.tsx).
+  // Bare /create has no param -> creation; /create/:courseId -> edit mode.
+  const { courseId: routeCourseId } = useParams<{ courseId?: string }>();
+  const isEditMode = !!routeCourseId;
+  const detailQuery = useCourseDetail(routeCourseId ?? null);
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -82,13 +94,47 @@ export function CreateCoursePage() {
   const [modules, setModules] = useState<ModuleDraft[]>([emptyModule(0)]);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Existing-course identity. The /create route never loads an existing course
-  // today (always a fresh draft), so these stay at their create-mode defaults.
-  // They exist so the edit affordances defensively respect an "existing
-  // published course" state if/when an edit entry point hydrates them, matching
-  // the server-side gating in migration 0019.
-  const [courseId] = useState<string | undefined>(undefined);
-  const [courseStatus] = useState<CourseStatus>('draft');
+  // Existing-course identity. In creation mode these stay undefined/'draft'. In
+  // edit mode they are hydrated from the loaded course so the edit affordances
+  // (and saveCourseTree's UPDATE / published-append branches) respect an
+  // existing published course, matching the server-side gating in migration
+  // 0019.
+  const [courseId, setCourseId] = useState<string | undefined>(undefined);
+  const [courseStatus, setCourseStatus] = useState<CourseStatus>('draft');
+
+  // Hydrate the form from the loaded course exactly once per courseId, so
+  // re-renders (and later user edits) never clobber what the user is typing.
+  const hydratedFor = useRef<string | null>(null);
+  const detail = detailQuery.data;
+  useEffect(() => {
+    if (!isEditMode || !routeCourseId || !detail) return;
+    if (hydratedFor.current === routeCourseId) return;
+    hydratedFor.current = routeCourseId;
+
+    const draft = courseDetailToDraft(detail);
+    setTitle(draft.title);
+    setSlug(draft.slug);
+    // Preserve the stored slug: do not auto-regenerate it from the title.
+    setSlugTouched(true);
+    setDescription(draft.description);
+    setCategory(draft.category);
+    setTagsText(draft.tags.join(', '));
+    setVisibility(draft.visibility === 'private' ? 'private' : 'public');
+    setModules(draft.modules.length > 0 ? draft.modules : [emptyModule(0)]);
+    setCourseId(draft.id);
+    setCourseStatus(draft.status);
+  }, [isEditMode, routeCourseId, detail]);
+
+  // Client-side creator gate (UX only; server RLS is the real authority).
+  const canEdit =
+    !isEditMode ||
+    !detail ||
+    detail.course.creator_id === session?.user?.id ||
+    isAdmin;
+
+  // An already-published course only accepts brand-new modules; existing
+  // content is read-only and the "Publicar" action is irrelevant.
+  const isPublishedEdit = isEditMode && courseStatus === 'published';
 
   // When editing an existing PUBLISHED course, its already-persisted content is
   // immutable: edit/delete affordances for pre-existing modules/lessons/
@@ -222,12 +268,53 @@ export function CreateCoursePage() {
     }
   }
 
+  // Edit mode: show a spinner while the course tree loads.
+  if (isEditMode && detailQuery.isLoading) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          padding: '3rem',
+        }}
+      >
+        <Spinner size={32} />
+      </div>
+    );
+  }
+
+  // Edit mode: surface the real load error (via the shared FEAT-002 helper).
+  if (isEditMode && detailQuery.isError) {
+    return (
+      <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
+        <ErrorText>
+          {formatError(
+            detailQuery.error,
+            'Não foi possível carregar o curso para edição',
+          )}
+        </ErrorText>
+      </div>
+    );
+  }
+
+  // Edit mode: client-side creator gate (server RLS remains authoritative).
+  if (isEditMode && !canEdit) {
+    return (
+      <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
+        <ErrorText>Você não tem permissão para editar este curso.</ErrorText>
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
-      <h1 style={{ color: 'var(--brand-purple)' }}>Criar curso</h1>
+      <h1 style={{ color: 'var(--brand-purple)' }}>
+        {isEditMode ? 'Editar curso' : 'Criar curso'}
+      </h1>
       <p style={{ color: 'var(--color-text-muted)', marginTop: '-0.5rem' }}>
-        Monte seus módulos, aulas e questões. Salve como rascunho ou publique
-        para o catálogo.
+        {isPublishedEdit
+          ? 'Este curso já está publicado: o conteúdo existente fica bloqueado e você só pode adicionar novos módulos.'
+          : 'Monte seus módulos, aulas e questões. Salve como rascunho ou publique para o catálogo.'}
       </p>
 
       <section style={card}>
@@ -609,22 +696,37 @@ export function CreateCoursePage() {
           justifyContent: 'flex-end',
         }}
       >
-        <Button
-          type="button"
-          variant="ghost"
-          loading={save.isPending}
-          onClick={() => handleSave('draft')}
-        >
-          Salvar rascunho
-        </Button>
-        <Button
-          type="button"
-          variant="primary"
-          loading={save.isPending}
-          onClick={() => handleSave('published')}
-        >
-          Publicar
-        </Button>
+        {isPublishedEdit ? (
+          // Already published: saving only persists newly added modules; the
+          // status stays 'published' and there is no separate publish step.
+          <Button
+            type="button"
+            variant="primary"
+            loading={save.isPending}
+            onClick={() => handleSave('published')}
+          >
+            Salvar alterações
+          </Button>
+        ) : (
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              loading={save.isPending}
+              onClick={() => handleSave('draft')}
+            >
+              Salvar rascunho
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              loading={save.isPending}
+              onClick={() => handleSave('published')}
+            >
+              Publicar
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );

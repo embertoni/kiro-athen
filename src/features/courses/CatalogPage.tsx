@@ -355,6 +355,7 @@ export function CatalogPage() {
                 onOpen={() => setOpenCourseId(c.id)}
                 onEnroll={() => handleEnroll(c.id)}
                 enrolling={enroll.isPending}
+                onEdit={() => navigate(`/create/${c.id}`)}
               />
             ))}
           </div>

@@ -148,6 +148,17 @@ export function CourseDetailModal({
       footer={
         detail ? (
           <>
+            {detail.creator?.id && detail.creator.id === userId && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  onClose();
+                  navigate(`/create/${detail.course.id}`);
+                }}
+              >
+                Editar
+              </Button>
+            )}
             {enrolled ? (
               <Button variant="primary" onClick={handleStart}>
                 Começar curso
