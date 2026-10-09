@@ -1,0 +1,32 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Dashboard trail: color the trail (connectors/path between nodes and the active section) based on the CURRENT/selected module's color, with a fallback to var(--brand-purple) when a module has no color; and ensure the SELECTED node is always centered horizontally in the viewport, both when a node/module is clicked and when the carousel changes the focused module, without breaking pointer-drag or wheel scrolling. Frontend only (modules.color already exists in schema and is already selected by useCourseTrail). This feature is independent of FEAT-003.",
+  "status": "pending",
+  "steps": [
+    "Trail coloring - data/current-module: In src/features/dashboard/DashboardPage.tsx the trail already tracks focusedModuleId and renders TrailTrack. Determine the 'current module' as the focused module (focusedModuleId) when set, else default to the first module of the trail. Compute its color (module.color ?? 'var(--brand-purple)'). Default focusedModuleId to the first module when the trail loads/changes (add an effect that sets focusedModuleId to trail.modules[0].module.id when focusedModuleId is null or no longer present in the current trail), so the trail always has a current color even before the user interacts.",
+    "Trail coloring - render: Make the trail connectors/path reflect the current module color. Today there are NO connector lines in .dash__track (nodes are just laid out with flex gap). Add a visible connecting path/segment between nodes and color it with the current module's color. Implement by passing the current color into TrailTrack and exposing it to CSS via a CSS custom property on the trail/track container (e.g. set style={{ ['--trail-color' as string]: currentColor }} on the .dash__track or .dash__trail element) and add CSS in src/styles/theme.css that draws connector segments (e.g. a horizontal line via a ::before/::after or a dedicated connector element between modules/lessons) using var(--trail-color). Per-module segments MAY use each module's own color for its own sub-section; at minimum the overall active path and the current section must use the current/selected module color. Keep the module-node background and lesson 'available' accent consistent with this (the module node already uses m.module.color). Ensure the fallback var(--brand-purple) is used when color is null.",
+    "Also reflect the current color on the carousel's active item if it is not already (dash__carousel-item--active currently uses var(--brand-purple)); use the focused module's color for the active carousel pill so the UI is consistent. Keep borderColor per item = m.module.color ?? var(--brand-purple) as today.",
+    "Centering - extract pure math: Add a small pure helper (e.g. src/features/dashboard/helpers.ts, exported function such as computeCenterScrollLeft({ containerWidth, nodeOffsetLeft, nodeWidth, maxScrollLeft }) => number) that returns the scrollLeft needed to center a node horizontally: nodeOffsetLeft + nodeWidth/2 - containerWidth/2, clamped to [0, maxScrollLeft]. This is unit-testable without a DOM.",
+    "Centering - wire it: Rewrite scrollToModule(moduleId) in DashboardPage.tsx so that instead of el.scrollIntoView({ inline: 'start' }) it centers the module node horizontally within the trail container (trailRef). Use the trail container (trailRef.current) scroll metrics: containerWidth = trailRef.current.clientWidth, the node element's offsetLeft relative to the scroll container (prefer node.offsetLeft; if the node is not a direct offsetParent child, compute via getBoundingClientRect offsets relative to the container), nodeWidth = node.offsetWidth, maxScrollLeft = scrollWidth - clientWidth. Set trailRef.current.scrollTo({ left: computeCenterScrollLeft(...), behavior: 'smooth' }). Apply this on carousel click (scrollToModule) AND when focusedModuleId changes programmatically. Keep setFocusedModuleId in scrollToModule.",
+    "Centering on node click: when a lesson or module node is clicked/selected in the trail, also center it (set the focused module and center on that module). At minimum, keep the carousel-driven centering working; if lesson clicks navigate away (onOpenLesson), centering the owning module on focus-change is sufficient. Do not add centering logic that fights the user's active drag (only auto-center on explicit selection/carousel/focus changes, never during pointer drag).",
+    "Preserve drag/wheel: Do NOT change the behavior of useHorizontalDragScroll.ts beyond what is necessary. The container must remain overflow-x: auto and the drag/wheel handlers must keep working. Verify that centering uses the same scroll container the drag handlers mutate (trailRef) so they do not conflict.",
+    "Tests: Add/extend a vitest unit test (src/features/dashboard/__tests__/helpers.test.ts or a new co-located test) covering computeCenterScrollLeft: node in the middle centers correctly, node near the start clamps to 0, node near the end clamps to maxScrollLeft, and nodeWidth is accounted for. Also add a tiny pure helper + test for 'current module color resolution' if you extract one (module with color returns it; module with null color returns the brand fallback)."
+  ],
+  "acceptance_criteria": [
+    "The trail shows a visible connecting path/segments between nodes whose color reflects the current/selected module's color, falling back to var(--brand-purple) when the module color is null.",
+    "Selecting a module via the bottom carousel scrolls the trail so that module's node is horizontally centered in the viewport (not snapped to the left edge).",
+    "Changing the focused module programmatically (carousel/selection) re-centers the newly focused node.",
+    "Pointer-drag and mouse-wheel horizontal scrolling of the trail still work (not broken by the centering change).",
+    "computeCenterScrollLeft is a pure exported function with unit tests covering middle, start-clamp, and end-clamp cases; `npm test` passes.",
+    "npm run typecheck, npm run lint (no NEW warnings beyond the recorded baseline), and npm run build all pass."
+  ],
+  "verification": [
+    "npm test  (new centering helper tests pass)",
+    "npm run typecheck  (exits 0)",
+    "npm run lint  (no new warnings beyond baseline)",
+    "npm run build  (exits 0)"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
