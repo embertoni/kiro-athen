@@ -1,0 +1,27 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Items 3 and 6. (3) Display the user level as a plain numeric value instead of an 'L1'-style label everywhere it appears. (6) Rework the profile page: put level, xp and streak INSIDE the identity block (icon/banner/names), make 'Cursos' and 'Amigos' clickable buttons that navigate to their pages while still showing their counts, and change 'Destacar Medalhas' so the chosen (up to 3) medals are pinned INTO the main identity block rather than merely highlighted in the medal list.",
+  "status": "pending",
+  "steps": [
+    "ITEM 3: profiles.level is already an integer and most places show it numerically (ProfilePage uses p.level, FriendsPage shows 'Nível {profile.level}'). Fix the two spots that render an 'L' prefix: in src/features/dashboard/DashboardPage.tsx change the StatCard value from `L${level}` to the plain number (`String(level)` or `${level}`). In src/features/rankings/GlobalRankingPage.tsx change 'Nível L{row.level}' to 'Nível {row.level}'. Grep the repo for any other `L${` / 'L{' / backtick-L level display and fix it too. Do NOT change the domain levelForXp logic (it already returns a number) or SQL.",
+    "ITEM 6 identity block: In src/features/profile/ProfilePage.tsx move level, XP and streak into the banner/avatar/identity <section> (the block containing avatar, display_name, @username, bio). Render them compactly within that block (e.g. a small inline row of Nível / XP / Sequência near the names). Keep showing the values; it is fine to keep or remove the separate Stat grid for these three, but Cursos and Amigos handling changes per the next step. Preserve the existing edit/destacar buttons for the owner.",
+    "ITEM 6 Cursos/Amigos buttons: Replace the Cursos and Amigos Stat tiles with clickable controls that STILL show the count and navigate on click: Cursos -> navigate('/catalog') (the enrolled courses live in the catalog 'Matriculados' tab) and Amigos -> navigate('/friends'). Use react-router (useNavigate or Link) consistent with the app. Keep view.enrolledCount and view.friendsCount as the displayed numbers. Make them visibly interactive (button/anchor styling) and accessible (real <button> or <Link>, aria-label with the count).",
+    "ITEM 6 featured medals pinned into identity block: Today FeatureMedalsModal + useSetFeaturedMedals already let the owner pick up to 3 (capped client-side and by a DB trigger) and MedalsShowcase renders featured medals highlighted at the top of the Medalhas list. Change the behavior so the featured (up to 3) medals are displayed INSIDE the main identity block (next to icon/banner/names), not as a highlighted row within the medal list. Keep the full medal list below (you may stop special-casing featured within MedalsShowcase, or keep the list but without the duplicate highlighted featured row). The 'Destacar medalhas' button still opens the chooser (max 3). Reuse the existing MedalChip rendering inside the identity block. No schema change is required (user_medals.featured already exists).",
+    "Keep all pt-BR copy. Run npm run typecheck, npm run lint, npm run test, npm run build after the changes."
+  ],
+  "acceptance_criteria": [
+    "No UI string renders the level with an 'L' prefix: DashboardPage shows the numeric level, GlobalRankingPage shows 'Nível {n}', and a repo grep for level 'L' display prefixes finds none in src/.",
+    "On the profile page, level, XP and streak appear inside the identity block that contains the avatar/banner/display name.",
+    "Cursos and Amigos are real clickable controls that still show their counts and navigate to /catalog and /friends respectively.",
+    "The up-to-3 featured medals chosen via 'Destacar medalhas' render inside the identity block (not merely highlighted within the full medal list); the chooser still enforces max 3.",
+    "npm run typecheck, npm run test, npm run build pass; npm run lint has 0 errors and no new warnings."
+  ],
+  "verification": [
+    "export PATH=\"/opt/toolchains/.nvm/versions/node/v22.23.3/bin:$PATH\" && npm run typecheck && npm run lint && npm run test && npm run build",
+    "grep -rn \"L\\${\\|Nível L\\|'L'\" src — confirm no level 'L' prefixes remain",
+    "Read src/features/profile/ProfilePage.tsx to confirm level/xp/streak and featured medals are inside the identity block and Cursos/Amigos navigate."
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

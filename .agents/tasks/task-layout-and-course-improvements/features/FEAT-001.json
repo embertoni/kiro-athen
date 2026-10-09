@@ -1,0 +1,24 @@
+{
+  "id": "FEAT-001",
+  "type": "chore",
+  "description": "Environment setup and feature branch. Confirm the baseline is green and create the branch all other features commit onto. The repo at /projects/sandbox/kiro-athen is on main (must NOT receive commits). npm is only reachable after prepending the nvm node path to PATH.",
+  "status": "completed",
+  "steps": [
+    "Prepend the node path to PATH for every npm invocation: export PATH=\"/opt/toolchains/.nvm/versions/node/v22.23.3/bin:$PATH\". node -v should print v22.x and npm -v should print 11.x.",
+    "Create and check out a new branch off main: git checkout -b feat/layout-and-course-improvements (do NOT commit on main).",
+    "Confirm the baseline is green BEFORE changing code: npm run typecheck (passes), npm run lint (0 errors; exactly 6 pre-existing warnings), npm run test (97 tests pass), npm run build (emits dist/).",
+    "Record the baseline results and the branch name in this feature's findings field.",
+    "Do NOT push and do NOT open a PR."
+  ],
+  "acceptance_criteria": [
+    "Current branch is feat/layout-and-course-improvements (not main), confirmed via git branch --show-current.",
+    "npm run typecheck, npm run test, and npm run build all succeed on the untouched baseline.",
+    "npm run lint reports 0 errors and no more than 6 warnings."
+  ],
+  "verification": [
+    "git branch --show-current prints feat/layout-and-course-improvements",
+    "export PATH=\"/opt/toolchains/.nvm/versions/node/v22.23.3/bin:$PATH\" && npm run typecheck && npm run test && npm run build"
+  ],
+  "blocked_reason": null,
+  "findings": "Branch: created feat/layout-and-course-improvements off main (6daa1f9). git branch --show-current confirms it. All later work commits onto this branch; main must stay untouched.\n\nEnvironment: node v22.23.3 / npm 11.4.2 only reachable after `export PATH=\"/opt/toolchains/.nvm/versions/node/v22.23.3/bin:$PATH\"` (npm/node NOT on default PATH). Prepend this to every npm/node invocation.\n\nBaseline (untouched code on new branch, all green):\n- npm run typecheck (tsc --noEmit): PASS, no output.\n- npm run lint (eslint .): 0 errors, exactly 6 warnings (all pre-existing react-refresh/exhaustive-deps): Toast.tsx:108, AuthProvider.tsx:233, LessonView.tsx:69, QuestionComponents.tsx:277, NotebookPage.tsx:41 and :51. Keep lint at <=6 warnings / 0 errors.\n- npm run test (vitest run): 97 tests passed across 7 files (settings, courses, friends, domain/rules, lesson/answerShaping, notifications, rooms helpers).\n- npm run build (tsc -b && vite build): PASS, emits dist/ (index.html, assets/, athen-logo.svg). Note the benign Vite chunk-size >500kB warning (pre-existing, not an error).\n\nNo code changes made in this feature (chore only). Did NOT push and did NOT open a PR. No commit was needed for the baseline itself, but the branch exists and is checked out. Note: .agents/ task-state dir is untracked on this branch (committed as part of this feature)."
+}
