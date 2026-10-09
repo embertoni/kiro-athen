@@ -7,7 +7,7 @@
  * (friendships RLS) remains the authority; these helpers only shape display.
  */
 
-import type { FriendshipRow, FriendshipStatus } from '@/types/database';
+import type { FriendshipRow, FriendshipStatus } from '@/types/db';
 
 /**
  * The current user's relationship to another user, derived from the friendship

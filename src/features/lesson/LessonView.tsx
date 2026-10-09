@@ -22,7 +22,7 @@ import { ErrorText } from '@/components/ui/ErrorText';
 import { formatError } from '@/lib/errors';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/features/auth/AuthProvider';
-import type { QuestionRow } from '@/types/database';
+import type { QuestionRow } from '@/types/db';
 import type {
   AttemptResult,
   FillBlankConfig,

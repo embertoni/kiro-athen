@@ -1,0 +1,7 @@
+{
+  "task_id": "task-regen-safe-database-types",
+  "task_description": "Make the project consume the raw `supabase gen types` output of src/types/database.ts without any hand-appended exports, so regenerating the file never breaks the Vercel build again. Remove the appended export block, normalize database.ts from UTF-16 to UTF-8, move all convenience aliases into a new regen-safe barrel src/types/db.ts, repoint all consumer imports, fix the GlobalRankRow nullable-view mismatch at the app boundary, and update docs to the new workflow.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001"],
+  "blocked_reason": null
+}

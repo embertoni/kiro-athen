@@ -1,4 +1,4 @@
-import type { CourseStatus } from '@/types/database';
+import type { CourseStatus } from '@/types/db';
 import { Button } from '@/components/ui/Button';
 
 interface CourseCardProps {

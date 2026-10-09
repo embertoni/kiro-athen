@@ -25,7 +25,7 @@ import type {
   LessonRow,
   ModuleRow,
   QuestionRow,
-} from '@/types/database';
+} from '@/types/db';
 import type { AttemptResult, SubmittedAnswer } from '@/types/domain';
 
 // ---------------------------------------------------------------------------

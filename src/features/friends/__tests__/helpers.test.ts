@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { FriendshipRow } from '@/types/database';
+import type { FriendshipRow } from '@/types/db';
 import {
   friendshipStatusLabel,
   otherParticipantId,

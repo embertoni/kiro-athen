@@ -7,7 +7,7 @@
  * to, plus a count helper for the header bell.
  */
 
-import type { NotificationRow, NotificationType } from '@/types/database';
+import type { NotificationRow, NotificationType } from '@/types/db';
 import { NOTIFICATION_TYPE_LABELS } from '@/domain/constants';
 
 /** Emoji icon per notification type (purely decorative). */

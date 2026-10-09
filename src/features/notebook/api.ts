@@ -7,7 +7,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import type { NotebookPageRow, NotebookRow } from '@/types/database';
+import type { NotebookPageRow, NotebookRow } from '@/types/db';
 
 export const notebookKeys = {
   all: ['notebook'] as const,

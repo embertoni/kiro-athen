@@ -25,8 +25,8 @@ import type {
   QuestionRow,
   QuestionType,
   ReviewRow,
-} from '@/types/database';
-import type { Json } from '@/types/database';
+} from '@/types/db';
+import type { Json } from '@/types/db';
 import {
   averageRating,
   nextModulePosition,

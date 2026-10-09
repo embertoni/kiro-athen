@@ -19,7 +19,7 @@ import type {
   ProfileRow,
   RoomMemberRow,
   RoomRow,
-} from '@/types/database';
+} from '@/types/db';
 import { generateAccessCode } from './helpers';
 
 // ---------------------------------------------------------------------------

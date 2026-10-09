@@ -12,7 +12,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import type { ProfileRow } from '@/types/database';
+import type { ProfileRow } from '@/types/db';
 
 export interface IdentityInput {
   displayName: string;

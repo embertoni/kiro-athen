@@ -15,7 +15,7 @@ import type {
   LessonRow,
   ModuleRow,
   ProfileRow,
-} from '@/types/database';
+} from '@/types/db';
 
 export const dashboardKeys = {
   overview: (userId: string | undefined) =>

@@ -12,7 +12,7 @@ import type {
   MultipleChoiceConfig,
   SumAlternativesConfig,
 } from '@/types/domain';
-import type { QuestionType } from '@/types/database';
+import type { QuestionType } from '@/types/db';
 import { QUESTION_XP } from '@/domain/constants';
 
 export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
