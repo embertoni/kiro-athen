@@ -114,7 +114,7 @@ export function DashboardPage() {
         }}
       >
         <StatCard label="XP global" value={xp.toLocaleString('pt-BR')} />
-        <StatCard label="Nível" value={`L${level}`} />
+        <StatCard label="Nível" value={String(level)} />
         <StatCard
           label="Sequência"
           value={`${liveProfile?.streak_count ?? 0} dias`}
