@@ -3,5 +3,12 @@
   "task_description": "Make the project consume the raw `supabase gen types` output of src/types/database.ts without any hand-appended exports, so regenerating the file never breaks the Vercel build again. Remove the appended export block, normalize database.ts from UTF-16 to UTF-8, move all convenience aliases into a new regen-safe barrel src/types/db.ts, repoint all consumer imports, fix the GlobalRankRow nullable-view mismatch at the app boundary, and update docs to the new workflow.",
   "status": "completed",
   "feature_order": ["FEAT-001"],
-  "blocked_reason": null
+  "blocked_reason": null,
+  "verification": {
+    "build": "pass",
+    "tests": "pass",
+    "test_quality": "pass",
+    "docker_build": "skipped",
+    "summary": "`npm run build` exits 0 (was 39 TS errors on baseline). `npm run test` 161 passed incl. 3 new ranking boundary tests. Lint clean (0 errors, 6 pre-existing warnings in untouched files, no new). Prettier clean on all src/**. database.ts now ASCII/UTF-8, first line `export type Json =`, zero appended aliases. No Dockerfile in repo so docker_build skipped. Test quality verified: the ranking test asserts null columns coalesce to ''/0 and imports the real mapGlobalRankRow, so it would fail if the coalescing were reverted."
+  }
 }
