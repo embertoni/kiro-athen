@@ -104,6 +104,11 @@ export interface TrailPoint {
  * `midY` by `amplitude`. Deterministic and DOM-free so the SVG path geometry is
  * unit-testable. `step` is the horizontal spacing; `startX` offsets the first
  * node from the left edge.
+ *
+ * `phases`, when provided, overrides the per-node sine phase index (otherwise
+ * the node index `i` is used). This lets callers RESET the sine phase at module
+ * boundaries so each module traces the same up/down wave (see
+ * computeModuleTrailPoints), while x still advances monotonically by `step`.
  */
 export function computeTrailPoints(input: {
   count: number;
@@ -111,16 +116,109 @@ export function computeTrailPoints(input: {
   startX: number;
   midY: number;
   amplitude: number;
+  phases?: number[];
 }): TrailPoint[] {
-  const { count, step, startX, midY, amplitude } = input;
+  const { count, step, startX, midY, amplitude, phases } = input;
   const points: TrailPoint[] = [];
   for (let i = 0; i < count; i += 1) {
+    const phase = phases ? phases[i] : i;
     points.push({
       x: startX + i * step,
-      y: midY + amplitude * Math.sin(i * 0.72),
+      y: midY + amplitude * Math.sin(phase * 0.72),
     });
   }
   return points;
+}
+
+/**
+ * The flat trail laid out as a REPEATING per-module wave. Each module
+ * contributes a node (the module itself) followed by one node per lesson. The
+ * sine phase RESETS at every module boundary so each module traces the same
+ * up/down shape, while x still advances by a fixed `step` across the whole
+ * sequence. Returns the flat point list plus the index range of each module so
+ * callers can map nodes back to modules/lessons and draw per-module segments.
+ */
+export interface ModuleTrailLayout {
+  /** One point per node, in flattened [module, lessons..., module, ...] order. */
+  points: TrailPoint[];
+  /** Per-module [startIndex, endIndex] inclusive ranges into `points`. */
+  ranges: { start: number; end: number }[];
+}
+
+/**
+ * Compute a repeating per-module wavy layout. `modules` lists each module's
+ * lesson count; each module yields `1 + lessonCount` nodes. The phase index
+ * resets to 0 at the first node of every module, so modules share the same wave
+ * pattern instead of one monotonic sine across the whole trail. Pure and
+ * DOM-free so the geometry stays unit-testable.
+ */
+export function computeModuleTrailPoints(input: {
+  modules: { lessonCount: number }[];
+  step: number;
+  startX: number;
+  midY: number;
+  amplitude: number;
+}): ModuleTrailLayout {
+  const { modules, step, startX, midY, amplitude } = input;
+
+  // Build the per-node phase indices (reset at each module boundary) and the
+  // per-module index ranges in one pass.
+  const phases: number[] = [];
+  const ranges: { start: number; end: number }[] = [];
+  let index = 0;
+  for (const m of modules) {
+    const nodeCount = 1 + Math.max(0, m.lessonCount);
+    const start = index;
+    for (let p = 0; p < nodeCount; p += 1) {
+      phases.push(p);
+      index += 1;
+    }
+    ranges.push({ start, end: index - 1 });
+  }
+
+  const points = computeTrailPoints({
+    count: phases.length,
+    step,
+    startX,
+    midY,
+    amplitude,
+    phases,
+  });
+
+  return { points, ranges };
+}
+
+/**
+ * Compute the 3-module window [previous, current, next] for the bottom carousel,
+ * with wraparound (modulo `moduleCount`). Returns the indices into the module
+ * list. Guards tiny lists: for a single module every slot is 0; for an empty
+ * list it returns an empty array (callers render nothing). Pure and testable.
+ */
+export function computeCarouselWindow(input: {
+  moduleCount: number;
+  activeIndex: number;
+}): number[] {
+  const { moduleCount, activeIndex } = input;
+  if (moduleCount <= 0) return [];
+  if (moduleCount === 1) return [0];
+  const wrap = (i: number) => ((i % moduleCount) + moduleCount) % moduleCount;
+  return [wrap(activeIndex - 1), wrap(activeIndex), wrap(activeIndex + 1)];
+}
+
+/**
+ * Compute the module index reached by moving the carousel `direction` steps
+ * (-1 previous, +1 next) from `activeIndex`, wrapping around both ends. Returns
+ * the clamped index for tiny/empty lists (0 for a single module, 0 for empty).
+ * Pure and testable.
+ */
+export function nextModuleIndex(input: {
+  moduleCount: number;
+  activeIndex: number;
+  direction: -1 | 1;
+}): number {
+  const { moduleCount, activeIndex, direction } = input;
+  if (moduleCount <= 0) return 0;
+  return ((activeIndex + direction) % moduleCount + moduleCount) % moduleCount;
 }
 
 /**

@@ -446,109 +446,52 @@ button {
   cursor: grabbing;
 }
 
+/*
+ * The trail track is a POSITIONED canvas: nodes are absolutely placed along a
+ * repeating per-module wave (TSX sets each node's inline left/top from the
+ * geometry helpers). Its explicit width/height are set inline from the computed
+ * layout so the scroll container (.dash__trail) can pan the full wave.
+ */
 .dash__track {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 2.5rem;
   min-height: 100%;
-  padding: 6rem 3rem 8rem;
-  width: max-content;
+  min-width: 100%;
 }
 
 /*
- * Decorative smooth SVG connector drawn behind the nodes. It spans the whole
- * track and uses per-module gradient segments (set in the TSX). Purely visual:
- * it never intercepts pointer events so dragging/clicking still hits the nodes.
+ * Decorative smooth SVG connector drawn behind the nodes. It is positioned at
+ * the track origin and sized (inline width/height) to the SAME coordinate space
+ * as the node points, so the path matches the node positions exactly. Purely
+ * visual: it never intercepts pointer events so dragging/clicking hits nodes.
  */
 .dash__connector {
   position: absolute;
   left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 100%;
-  height: 70%;
+  top: 0;
   pointer-events: none;
-  opacity: 0.4;
+  opacity: 0.5;
   z-index: 0;
 }
 
+/* Each module node is absolutely positioned on the wave (left/top inline). */
 .dash__module {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  position: relative;
+  position: absolute;
   z-index: 1;
 }
 
-/*
- * Connector segment: a horizontal line that visually links each module to the
- * previous node in the trail. Colored with the current/selected module color
- * (var(--trail-color), set on .dash__track), so the whole active path takes on
- * the current module color. Falls back to --brand-purple when the module has no
- * color (handled in TSX via resolveModuleColor).
- */
-.dash__module::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: calc(100% + 0.1rem);
-  width: 2.3rem;
-  height: 4px;
-  transform: translateY(-50%);
-  border-radius: 999px;
-  /* Segment follows this module's own color, falling back to the current trail
-     color and finally --brand-purple, so the connector path reads per-module. */
-  background: var(--module-color, var(--trail-color, var(--brand-purple)));
-  opacity: 0.55;
-  transition:
-    background 0.4s ease,
-    opacity 0.4s ease;
-}
-
-/* The first module has no preceding node, so no leading connector. */
-.dash__module:first-child::before {
-  display: none;
-}
-
-/* The focused module's own sub-section highlights with its own color. */
-.dash__module--active::before {
-  opacity: 1;
-}
-
-/* Connector between a module node and its own lessons uses the module color. */
-.dash__module .dash__lessons::before {
-  content: '';
-  align-self: center;
-  width: 1.5rem;
-  height: 4px;
-  margin-right: -0.5rem;
-  border-radius: 999px;
-  background: var(--module-color, var(--trail-color, var(--brand-purple)));
-  opacity: 0.55;
-  transition:
-    background 0.4s ease,
-    opacity 0.4s ease;
-}
-
-.dash__module .dash__lessons:empty::before {
-  display: none;
-}
-
-/* Module node = SQUARE */
+/* Module node = SQUARE (enlarged toward the reference 80x92 face). */
 .dash__module-node {
-  width: 5.5rem;
-  height: 5.5rem;
+  width: 80px;
+  height: 80px;
   border-radius: var(--radius-md);
   color: #fff;
   font-weight: 800;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 0.4rem;
+  padding: 0.35rem;
   box-shadow: var(--shadow-md);
   overflow: hidden;
   transition:
@@ -556,33 +499,35 @@ button {
     box-shadow 0.3s ease;
 }
 
+.dash__module-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.15;
+}
+
 /* The focused module's node lifts and glows with its own color. */
 .dash__module--active .dash__module-node {
-  transform: scale(1.06);
+  transform: scale(1.08);
   box-shadow: 0 0 0 3px var(--color-surface),
-    0 0 22px var(--module-color, var(--brand-purple));
+    0 0 26px var(--module-color, var(--brand-purple));
 }
 
-.dash__lessons {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-}
-
-/* Lesson node = CIRCLE */
+/* Lesson node = CIRCLE (enlarged toward the reference 64x72), absolute. */
 .dash__lesson {
-  width: 4.5rem;
-  height: 4.5rem;
+  position: absolute;
+  z-index: 1;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   border: 3px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.15rem;
   padding: 0.3rem;
   box-shadow: var(--shadow-sm);
   transition:
@@ -598,17 +543,8 @@ button {
 }
 
 .dash__lesson-icon {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   line-height: 1;
-}
-
-.dash__lesson-title {
-  font-size: 0.6rem;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 0 0.2rem;
 }
 
 .dash__lesson--completed {
@@ -780,38 +716,121 @@ button {
   border-radius: 999px;
 }
 
-/* Bottom module carousel. */
+/* Bottom-CENTER 3-item module carousel: a left arrow, a fixed-width viewport
+   showing [previous, current, next], and a right arrow. Centered horizontally
+   so it does not overlap the bottom-left notebook toggle. */
 .dash__carousel {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 50%;
+  bottom: 0.75rem;
+  transform: translateX(-50%);
   z-index: 10;
   display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  overflow-x: auto;
-  background: linear-gradient(to top, var(--color-surface), rgba(0, 0, 0, 0));
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
 }
 
-.dash__carousel-item {
-  flex-shrink: 0;
-  padding: 0.5rem 1rem;
-  border: 2px solid var(--brand-purple);
-  border-radius: 999px;
-  background: var(--color-surface);
+.dash__carousel-arrow {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 2.8rem;
+  padding: 0;
   color: var(--color-text);
-  font-weight: 600;
-  font-size: 0.82rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   cursor: pointer;
+  font-size: 1.6rem;
+  line-height: 1;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.dash__carousel-arrow:hover {
+  background: var(--brand-purple);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* Fixed-width window that clips to exactly the 3-item track. */
+.dash__carousel-viewport {
+  width: min(100%, 22rem);
+  overflow: hidden;
+}
+
+.dash__carousel-track {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: end;
+  gap: 0;
+}
+
+/* Neighbor items are dimmed; the center item is full color (see --current). */
+.dash__carousel-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  opacity: 0.62;
+  filter: brightness(0.58) saturate(0.75);
+  transform: scale(0.88);
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease,
+    transform 0.3s ease;
+}
+
+.dash__carousel-item--current {
+  opacity: 1;
+  filter: none;
+  transform: scale(1);
+}
+
+.dash__carousel-name {
+  width: calc(100% - 0.5rem);
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0.4rem;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.dash__carousel-item--active {
-  /* Background is set inline to the focused module's color; this is the
-     fallback when no inline color is present. */
-  background: var(--brand-purple);
+.dash__carousel-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 2.75rem;
   color: #fff;
+  border: 2px solid var(--brand-purple);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
+}
+
+.dash__carousel-button:hover {
+  transform: translateY(-3px);
+}
+
+.dash__carousel-initial {
+  font-size: 1.3rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 /* Bottom-right notice board (Salas mode). */

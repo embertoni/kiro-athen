@@ -3,7 +3,8 @@
  *
  * The central area is a horizontal, Duolingo-style trail for the selected
  * course (or the selected room's course): SQUARE module nodes and CIRCLE lesson
- * nodes laid out left-to-right in course order. The trail layer sits BEHIND the
+ * nodes absolutely positioned along a repeating per-module wave in course
+ * order. The trail layer sits BEHIND the
  * overlay UI (selector, top-down panel, carousel, notice board) and can be
  * dragged / wheel-scrolled horizontally. All completion/locking state is
  * server-authoritative (useCourseTrail); there is no fake completion state.
@@ -39,11 +40,13 @@ import { pacDisplay, sortByXpDesc } from '@/features/rooms/helpers';
 import { useCourseTrail, useDashboardOverview, type CourseTrail } from './api';
 import {
   buildTrailGradient,
+  computeCarouselWindow,
   computeCenterScrollLeft,
-  computeTrailPoints,
+  computeModuleTrailPoints,
   createSmoothPath,
-  deriveDailyMissions,
+  nextModuleIndex,
   resolveModuleColor,
+  deriveDailyMissions,
 } from './helpers';
 import { useHorizontalDragScroll } from './useHorizontalDragScroll';
 
@@ -156,11 +159,10 @@ export function DashboardPage() {
   //
   // The node offset is measured relative to the scroll container via
   // getBoundingClientRect + the container's current scrollLeft, rather than
-  // node.offsetLeft. offsetLeft is relative to the nearest POSITIONED ancestor,
-  // which only happens to be the scroll container today (`.dash__trail` is
-  // position:absolute while `.dash__track` is static); measuring from the
-  // container's own rect keeps centering correct regardless of which ancestor
-  // becomes the offset parent (e.g. if `.dash__track` is later positioned).
+  // node.offsetLeft. offsetLeft is relative to the nearest POSITIONED ancestor;
+  // the track (`.dash__track`) is now position:relative so it is the offset
+  // parent, but measuring from the container's own rect keeps centering correct
+  // regardless of which ancestor becomes the offset parent.
   useEffect(() => {
     if (!focusedModuleId) return;
     const container = trailRef.current;
@@ -354,36 +356,15 @@ export function DashboardPage() {
         </div>
       </section>
 
-      {/* Bottom: module carousel */}
+      {/* Bottom-center: 3-item module carousel (prev-arrow, [prev, current,
+          next] viewport, next-arrow). Drives the EXISTING focusedModuleId
+          mechanism so the trail re-centers; neighbors are dimmed via CSS. */}
       {trail && trail.modules.length > 0 && (
-        <div
-          className="dash__carousel"
-          role="tablist"
-          aria-label="Módulos do curso"
-        >
-          {trail.modules.map((m) => (
-            <button
-              key={m.module.id}
-              type="button"
-              role="tab"
-              aria-selected={focusedModuleId === m.module.id}
-              className={
-                focusedModuleId === m.module.id
-                  ? 'dash__carousel-item dash__carousel-item--active'
-                  : 'dash__carousel-item'
-              }
-              style={{
-                borderColor: resolveModuleColor(m.module.color),
-                ...(focusedModuleId === m.module.id
-                  ? { background: resolveModuleColor(m.module.color) }
-                  : {}),
-              }}
-              onClick={() => scrollToModule(m.module.id)}
-            >
-              {m.module.title}
-            </button>
-          ))}
-        </div>
+        <ModuleCarousel
+          trail={trail}
+          focusedModuleId={focusedModuleId}
+          onSelect={scrollToModule}
+        />
       )}
 
       {/* Bottom-right: notice board (Salas mode only) */}
@@ -446,6 +427,34 @@ export function DashboardPage() {
 // Trail track (modules = squares, lessons = circles)
 // ---------------------------------------------------------------------------
 
+/*
+ * Trail geometry (shared by the nodes and the SVG connector). Nodes are
+ * ABSOLUTELY positioned along a REPEATING per-module wave: x advances by STEP
+ * per node, y oscillates around MID_Y and the sine phase RESETS at every module
+ * boundary so each module traces the same up/down shape. The connector draws
+ * the SAME flattened points so the path visibly matches the node positions.
+ */
+const currentFallback = 'var(--brand-purple)';
+const TRAIL_STEP = 150;
+const TRAIL_START_X = 120;
+const TRAIL_MID_Y = 170;
+const TRAIL_AMPLITUDE = 92;
+const TRAIL_HEIGHT = 340;
+const TRAIL_PAD_RIGHT = 120;
+// Half the module face (80px) / lesson face (64px) used to center a node on its
+// wave point via inline left/top (the node box is positioned by its top-left).
+const MODULE_HALF = 40;
+const LESSON_HALF = 32;
+
+/** A flattened trail node: a module square or one of its lesson circles. */
+type TrailNode =
+  | { kind: 'module'; moduleId: string; m: CourseTrail['modules'][number] }
+  | {
+      kind: 'lesson';
+      moduleId: string;
+      lesson: CourseTrail['modules'][number]['lessons'][number];
+    };
+
 function TrailTrack({
   trail,
   currentColor,
@@ -457,66 +466,101 @@ function TrailTrack({
   focusedModuleId: string | null;
   onOpenLesson: (lessonId: string) => void;
 }) {
+  // Flatten modules into an ordered node sequence [module, its lessons, ...].
+  const nodes: TrailNode[] = [];
+  for (const m of trail.modules) {
+    nodes.push({ kind: 'module', moduleId: m.module.id, m });
+    for (const l of m.lessons) {
+      nodes.push({ kind: 'lesson', moduleId: m.module.id, lesson: l });
+    }
+  }
+
+  // Repeating per-module wave: phase resets at each module boundary.
+  const { points } = computeModuleTrailPoints({
+    modules: trail.modules.map((m) => ({ lessonCount: m.lessons.length })),
+    step: TRAIL_STEP,
+    startX: TRAIL_START_X,
+    midY: TRAIL_MID_Y,
+    amplitude: TRAIL_AMPLITUDE,
+  });
+
+  const width =
+    (points.length > 0 ? points[points.length - 1].x : TRAIL_START_X) +
+    TRAIL_PAD_RIGHT;
+
   return (
     <div
       className="dash__track"
-      style={{ ['--trail-color' as string]: currentColor }}
+      style={{
+        ['--trail-color' as string]: currentColor,
+        width: `${width}px`,
+        height: `${TRAIL_HEIGHT}px`,
+      }}
     >
-      <TrailConnector trail={trail} />
-      {trail.modules.map((m) => {
-        const moduleColor = resolveModuleColor(m.module.color);
-        const isActive = focusedModuleId === m.module.id;
-        return (
-          <div
-            key={m.module.id}
-            className={
-              isActive ? 'dash__module dash__module--active' : 'dash__module'
-            }
-            data-module-id={m.module.id}
-            style={{ ['--module-color' as string]: moduleColor }}
-          >
+      <TrailConnector trail={trail} points={points} width={width} />
+      {nodes.map((node, i) => {
+        const point = points[i] ?? { x: TRAIL_START_X, y: TRAIL_MID_Y };
+        if (node.kind === 'module') {
+          const moduleColor = resolveModuleColor(node.m.module.color);
+          const isActive = focusedModuleId === node.moduleId;
+          return (
             <div
-              className="dash__module-node"
-              style={{ background: moduleColor }}
-              title={m.module.title}
+              key={`module-${node.moduleId}`}
+              className={
+                isActive
+                  ? 'dash__module dash__module--active'
+                  : 'dash__module'
+              }
+              data-module-id={node.moduleId}
+              style={{
+                ['--module-color' as string]: moduleColor,
+                left: `${point.x - MODULE_HALF}px`,
+                top: `${point.y - MODULE_HALF}px`,
+              }}
             >
-              {m.module.title}
+              <div
+                className="dash__module-node"
+                style={{ background: moduleColor }}
+                title={node.m.module.title}
+              >
+                <span className="dash__module-title">
+                  {node.m.module.title}
+                </span>
+              </div>
             </div>
-            <div className="dash__lessons">
-              {m.lessons.map((l) => {
-                const state = l.locked
-                  ? 'locked'
-                  : l.completed
-                    ? 'completed'
-                    : 'available';
-                return (
-                  <button
-                    key={l.lesson.id}
-                    type="button"
-                    disabled={l.locked}
-                    className={`dash__lesson dash__lesson--${state}`}
-                    aria-label={`${l.lesson.title} — ${
-                      l.locked
-                        ? 'bloqueada'
-                        : l.completed
-                          ? 'concluída'
-                          : 'disponível'
-                    }`}
-                    title={l.lesson.title}
-                    onClick={() => !l.locked && onOpenLesson(l.lesson.id)}
-                  >
-                    <span aria-hidden="true" className="dash__lesson-icon">
-                      {l.locked ? '🔒' : l.completed ? '✓' : '▶'}
-                    </span>
-                    <span className="dash__lesson-title">{l.lesson.title}</span>
-                  </button>
-                );
-              })}
-              {m.lessons.length === 0 && (
-                <span className="dash__empty">Sem aulas</span>
-              )}
-            </div>
-          </div>
+          );
+        }
+
+        const l = node.lesson;
+        const state = l.locked
+          ? 'locked'
+          : l.completed
+            ? 'completed'
+            : 'available';
+        return (
+          <button
+            key={`lesson-${l.lesson.id}`}
+            type="button"
+            disabled={l.locked}
+            className={`dash__lesson dash__lesson--${state}`}
+            aria-label={`${l.lesson.title} — ${
+              l.locked
+                ? 'bloqueada'
+                : l.completed
+                  ? 'concluída'
+                  : 'disponível'
+            }`}
+            title={l.lesson.title}
+            style={{
+              left: `${point.x - LESSON_HALF}px`,
+              top: `${point.y - LESSON_HALF}px`,
+            }}
+            onClick={() => !l.locked && onOpenLesson(l.lesson.id)}
+          >
+            <span aria-hidden="true" className="dash__lesson-icon">
+              {l.locked ? '🔒' : l.completed ? '✓' : '▶'}
+            </span>
+          </button>
         );
       })}
     </div>
@@ -525,40 +569,39 @@ function TrailTrack({
 
 /**
  * Decorative smooth SVG connector behind the trail nodes. It draws one flowing
- * cubic-bezier path with per-module gradient segments (each segment fades from
- * the current module color to the next, falling back to --brand-purple), giving
- * the trail a continuous "river" that is smoother than the per-node CSS
- * segments. Geometry comes from the pure, unit-tested helpers so the math stays
- * DOM-free. Purely visual (pointer-events: none) so it never intercepts clicks.
+ * cubic-bezier path through the SAME flattened node points as the track, with
+ * per-module gradient segments (each segment fades from one module color to the
+ * next, falling back to --brand-purple), so the path visibly matches the node
+ * positions. Geometry comes from the pure, unit-tested helpers so the math
+ * stays DOM-free. Purely visual (pointer-events: none) so it never intercepts
+ * clicks.
  */
-function TrailConnector({ trail }: { trail: CourseTrail }) {
-  const moduleColors = trail.modules.map((m) =>
-    resolveModuleColor(m.module.color),
-  );
-  const count = moduleColors.length;
-  if (count < 2) return null;
+function TrailConnector({
+  trail,
+  points,
+  width,
+}: {
+  trail: CourseTrail;
+  points: { x: number; y: number }[];
+  width: number;
+}) {
+  if (points.length < 2) return null;
 
-  // Module nodes sit ~11.5rem apart in the flex track (node + gap + lessons).
-  // These are decorative coordinates in the SVG's own space; the viewBox scales
-  // them to the rendered track width, so exact px alignment is not required.
-  const STEP = 220;
-  const START_X = 70;
-  const MID_Y = 90;
-  const AMPLITUDE = 46;
-  const HEIGHT = MID_Y * 2;
-  const points = computeTrailPoints({
-    count,
-    step: STEP,
-    startX: START_X,
-    midY: MID_Y,
-    amplitude: AMPLITUDE,
-  });
-  const width = START_X * 2 + (count - 1) * STEP;
+  // Map each node index to its owning module color so each path segment fades
+  // between the colors of the two nodes it connects.
+  const nodeColors: string[] = [];
+  for (const m of trail.modules) {
+    const color = resolveModuleColor(m.module.color);
+    nodeColors.push(color); // module node
+    for (let i = 0; i < m.lessons.length; i += 1) nodeColors.push(color);
+  }
 
   return (
     <svg
       className="dash__connector"
-      viewBox={`0 0 ${width} ${HEIGHT}`}
+      viewBox={`0 0 ${width} ${TRAIL_HEIGHT}`}
+      width={width}
+      height={TRAIL_HEIGHT}
       preserveAspectRatio="none"
       aria-hidden="true"
       focusable="false"
@@ -576,8 +619,11 @@ function TrailConnector({ trail }: { trail: CourseTrail }) {
               x2={next.x}
               y2={next.y}
             >
-              <stop offset="0%" stopColor={moduleColors[i]} />
-              <stop offset="100%" stopColor={moduleColors[i + 1]} />
+              <stop offset="0%" stopColor={nodeColors[i] ?? currentFallback} />
+              <stop
+                offset="100%"
+                stopColor={nodeColors[i + 1] ?? currentFallback}
+              />
             </linearGradient>
           );
         })}
@@ -593,6 +639,110 @@ function TrailConnector({ trail }: { trail: CourseTrail }) {
         />
       ))}
     </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Bottom-center module carousel (3-item window with wraparound)
+// ---------------------------------------------------------------------------
+
+function ModuleCarousel({
+  trail,
+  focusedModuleId,
+  onSelect,
+}: {
+  trail: CourseTrail;
+  focusedModuleId: string | null;
+  onSelect: (moduleId: string) => void;
+}) {
+  const modules = trail.modules;
+  const moduleCount = modules.length;
+  const activeIndex = Math.max(
+    0,
+    modules.findIndex((m) => m.module.id === focusedModuleId),
+  );
+  const windowIndices = computeCarouselWindow({ moduleCount, activeIndex });
+  const hasArrows = moduleCount > 1;
+
+  function move(direction: -1 | 1) {
+    const idx = nextModuleIndex({ moduleCount, activeIndex, direction });
+    const target = modules[idx];
+    if (target) onSelect(target.module.id);
+  }
+
+  return (
+    <div className="dash__carousel" aria-label="Navegação entre módulos">
+      {hasArrows && (
+        <button
+          type="button"
+          className="dash__carousel-arrow"
+          onClick={() => move(-1)}
+          aria-label="Módulo anterior"
+        >
+          ‹
+        </button>
+      )}
+      <div className="dash__carousel-viewport">
+        <div className="dash__carousel-track" role="tablist">
+          {windowIndices.map((moduleIndex, slot) => {
+            const m = modules[moduleIndex];
+            if (!m) return null;
+            // In a 3-slot window the center slot is current; for a single
+            // module the only slot is current.
+            const isCurrent = windowIndices.length === 1 ? true : slot === 1;
+            const color = resolveModuleColor(m.module.color);
+            return (
+              <div
+                key={`${m.module.id}-${slot}`}
+                className={
+                  isCurrent
+                    ? 'dash__carousel-item dash__carousel-item--current'
+                    : 'dash__carousel-item'
+                }
+                style={{ ['--module-color' as string]: color }}
+              >
+                <span
+                  className="dash__carousel-name"
+                  style={{ color, borderColor: color }}
+                  title={m.module.title}
+                >
+                  {m.module.title}
+                </span>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={isCurrent}
+                  className="dash__carousel-button"
+                  style={{
+                    borderColor: color,
+                    background: isCurrent
+                      ? `linear-gradient(145deg, ${color}, ${color}bb)`
+                      : 'transparent',
+                    boxShadow: isCurrent ? `0 0 20px ${color}66` : 'none',
+                  }}
+                  onClick={() => onSelect(m.module.id)}
+                  aria-label={`Selecionar módulo ${m.module.title}`}
+                >
+                  <span className="dash__carousel-initial" aria-hidden="true">
+                    {m.module.title.trim().charAt(0).toUpperCase() || '•'}
+                  </span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {hasArrows && (
+        <button
+          type="button"
+          className="dash__carousel-arrow"
+          onClick={() => move(1)}
+          aria-label="Próximo módulo"
+        >
+          ›
+        </button>
+      )}
+    </div>
   );
 }
 
