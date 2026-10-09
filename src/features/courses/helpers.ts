@@ -6,7 +6,7 @@
  * UI components build on top of them.
  */
 
-import type { CourseStatus, CourseVisibility } from '@/types/database';
+import type { CourseStatus, CourseVisibility } from '@/types/db';
 import type {
   CourseDetail,
   CourseDraft,

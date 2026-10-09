@@ -15,7 +15,7 @@ import { ErrorText } from '@/components/ui/ErrorText';
 import { formatError } from '@/lib/errors';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/features/auth/AuthProvider';
-import type { NotebookPageRow } from '@/types/database';
+import type { NotebookPageRow } from '@/types/db';
 import {
   useCreateNotebook,
   useCreatePage,

@@ -2,7 +2,7 @@
  * App-facing domain interfaces for Athen.
  *
  * These are the richly-typed shapes the UI works with, layered on top of the
- * raw Supabase rows in src/types/database.ts. In particular they model the
+ * raw Supabase rows exposed through src/types/db.ts. In particular they model the
  * per-question-type `config` and `submitted` jsonb unions that the server
  * grader (grade_answer in 0010_domain_functions.sql) reads.
  */
@@ -32,7 +32,7 @@ import type {
   RoomMemberStatus,
   UserMedalRow,
   UserRole,
-} from './database';
+} from './db';
 
 // ---------------------------------------------------------------------------
 // Question config + submitted answer unions (match the SQL grader exactly)

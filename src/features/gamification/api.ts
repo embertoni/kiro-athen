@@ -10,7 +10,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import type { MedalRow, UserMedalRow } from '@/types/database';
+import type { MedalRow, UserMedalRow } from '@/types/db';
 
 export const gamificationKeys = {
   medals: (userId: string | undefined) =>

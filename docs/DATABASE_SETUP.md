@@ -159,8 +159,30 @@ supabase gen types typescript --project-id <project-ref> > src/types/database.ts
 supabase gen types typescript --local > src/types/database.ts
 ```
 
-- `src/types/database.ts` reflete o schema vivo e **nao deve ser editado a mao**:
-  regenere pelo comando acima para mante-lo fiel as migracoes.
+- `src/types/database.ts` reflete o schema vivo e **nunca deve ser editado a
+  mao nem receber exports adicionados ao final**. Ele contem apenas a saida crua
+  do gerador: `Json`, `Database`, `Constants` e os tipos auxiliares do gerador
+  (`Tables`, `TablesInsert`, `TablesUpdate`, `Enums`, `CompositeTypes`).
+  Regenere sempre pelo comando acima para mante-lo fiel as migracoes. O arquivo
+  esta listado em `.prettierignore` justamente para nao ser reformatado.
+- **Todos os aliases usados pela aplicacao vivem em `src/types/db.ts`**, nao em
+  `database.ts`. Esse barrel faz `export * from './database'` e define os
+  aliases de conveniencia derivados de `Database`: os aliases de enum
+  (`CourseStatus`, `QuestionType`, etc.), os aliases `*Row`
+  (`ProfileRow`, `CourseRow`, etc.) e as duas unioes de string que o gerador
+  alarga para `string` (`CompletionContext` e `PacVisibility`). Os consumidores
+  importam de `@/types/db`, nunca de `@/types/database`. Assim, regenerar
+  `database.ts` nunca quebra o build.
+- No Windows/PowerShell o operador `>` grava o arquivo em **UTF-16**; salve e
+  faca commit de `src/types/database.ts` como **UTF-8** (por exemplo, reabrindo
+  e salvando como UTF-8, ou convertendo com `iconv -f UTF-16LE -t UTF-8`). Um
+  arquivo UTF-16 e detectado erroneamente como outro tipo e quebra o build. O
+  `.gitattributes` na raiz agora normaliza `src/types/database.ts` para UTF-8/LF
+  no commit, entao uma regeneracao no Windows e corrigida automaticamente.
+- Para colunas de view com todas as colunas anulaveis (ex.: a view
+  `global_ranking`), faca a coalescencia dos nulls na borda de mapeamento da
+  aplicacao (ex.: `mapGlobalRankRow` em `src/features/rankings/helpers.ts`),
+  **nunca** editando os tipos gerados.
 - O build TypeScript continua verde contra o shape gerado por causa do shim
   `NormalizeDatabase` em `src/types/supabase-compat.ts` (usado por
   `src/lib/supabase.ts`).

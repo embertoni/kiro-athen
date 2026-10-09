@@ -8,7 +8,7 @@ import { Select } from '@/components/ui/Select';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
 import { extractErrorMessage, formatError } from '@/lib/errors';
-import type { QuestionType, Json, CourseStatus } from '@/types/database';
+import type { QuestionType, Json, CourseStatus } from '@/types/db';
 import {
   useCourseDetail,
   useSaveCourse,

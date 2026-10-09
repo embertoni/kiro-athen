@@ -12,7 +12,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
 import { formatError } from '@/lib/errors';
 import { useAuth } from '@/features/auth/AuthProvider';
-import type { NotificationRow } from '@/types/database';
+import type { NotificationRow } from '@/types/db';
 import { useMarkAllRead, useMarkRead, useNotifications } from './api';
 import {
   notificationLink,

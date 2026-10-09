@@ -8,7 +8,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import type { NotificationRow } from '@/types/database';
+import type { NotificationRow } from '@/types/db';
 
 export const notificationKeys = {
   all: ['notifications'] as const,

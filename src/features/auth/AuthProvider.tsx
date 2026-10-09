@@ -10,7 +10,7 @@ import {
 import type { ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import type { ProfileRow, UserRole } from '@/types/database';
+import type { ProfileRow, UserRole } from '@/types/db';
 
 /** Metadata consumed by the handle_new_user() trigger on signup. */
 export interface SignUpInput {

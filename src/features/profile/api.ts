@@ -9,7 +9,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import type { MedalRow, ProfileRow, UserMedalRow } from '@/types/database';
+import type { MedalRow, ProfileRow, UserMedalRow } from '@/types/db';
 
 export const profileKeys = {
   all: ['profile'] as const,

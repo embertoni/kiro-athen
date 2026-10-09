@@ -86,7 +86,10 @@ export function SettingsPage() {
       <PasswordSection email={email} />
       <PreferencesSection
         userId={userId}
-        prefs={profile.notification_preferences}
+        prefs={
+          profile.notification_preferences as
+            Record<string, boolean> | null | undefined
+        }
         onSaved={refreshProfile}
       />
       <DangerZone username={profile.username} />

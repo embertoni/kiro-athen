@@ -12,7 +12,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import type { Database } from '@/types/database';
+import type { Database } from '@/types/db';
 
 /** Names of the tables the admin CRUD may operate on. */
 type CrudTable = keyof Database['public']['Tables'];

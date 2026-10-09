@@ -14,23 +14,16 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { mapGlobalRankRow, type GlobalRankRow } from './helpers';
+
+export { mapGlobalRankRow };
+export type { GlobalRankRow };
 
 export const rankingKeys = {
   global: (limit: number) => ['rankings', 'global', limit] as const,
   friendsCourse: (courseId: string | undefined) =>
     ['rankings', 'friends-course', courseId] as const,
 };
-
-export interface GlobalRankRow {
-  userId: string;
-  username: string;
-  displayName: string;
-  avatarUrl: string | null;
-  xpGlobal: number;
-  level: number;
-  streakCount: number;
-  position: number;
-}
 
 /** Global, all-time leaderboard ordered by XP. */
 export function useGlobalRanking(limit = 50) {
@@ -43,16 +36,7 @@ export function useGlobalRanking(limit = 50) {
         .order('position', { ascending: true })
         .limit(limit);
       if (error) throw error;
-      return (data ?? []).map((r) => ({
-        userId: r.user_id,
-        username: r.username,
-        displayName: r.display_name,
-        avatarUrl: r.avatar_url,
-        xpGlobal: r.xp_global,
-        level: r.level,
-        streakCount: r.streak_count,
-        position: r.position,
-      }));
+      return (data ?? []).map(mapGlobalRankRow);
     },
   });
 }

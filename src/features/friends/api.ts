@@ -9,7 +9,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import type { FriendshipRow, ProfileRow } from '@/types/database';
+import type { FriendshipRow, ProfileRow } from '@/types/db';
 import { otherParticipantId } from './helpers';
 
 export const friendKeys = {

@@ -2,3 +2,6 @@ dist
 coverage
 node_modules
 *.svg
+
+# Generated verbatim by `supabase gen types`; never hand-edit or reformat.
+src/types/database.ts

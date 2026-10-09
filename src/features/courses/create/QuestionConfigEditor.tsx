@@ -4,8 +4,8 @@ import type {
   MultipleChoiceConfig,
   SumAlternativesConfig,
 } from '@/types/domain';
-import type { QuestionType } from '@/types/database';
-import type { Json } from '@/types/database';
+import type { QuestionType } from '@/types/db';
+import type { Json } from '@/types/db';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { expectedSum, newOptionId } from '../questionConfig';
