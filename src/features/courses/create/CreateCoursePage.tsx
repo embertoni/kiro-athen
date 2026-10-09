@@ -21,6 +21,7 @@ import {
   slugify,
   isExistingContentLocked,
   courseDetailToDraft,
+  hasNewModule,
 } from '../helpers';
 import {
   QUESTION_TYPE_LABELS,
@@ -247,6 +248,15 @@ export function CreateCoursePage() {
     const error = validate(draft);
     if (error) {
       setFormError(error);
+      return;
+    }
+    // Editing an already-published course only persists brand-new modules; a
+    // save with no new module would be a silent zero-write. Block it with a
+    // specific message instead of toasting a misleading success.
+    if (isPublishedEdit && !hasNewModule(draft.modules)) {
+      setFormError(
+        'Um curso publicado só aceita novos módulos. Adicione ao menos um módulo novo para salvar.',
+      );
       return;
     }
     try {

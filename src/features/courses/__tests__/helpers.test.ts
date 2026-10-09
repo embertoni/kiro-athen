@@ -6,6 +6,7 @@ import {
   courseDetailToDraft,
   EMPTY_FILTERS,
   hasActiveFilters,
+  hasNewModule,
   isExistingContentLocked,
   nextModulePosition,
   slugify,
@@ -274,6 +275,27 @@ describe('nextModulePosition', () => {
 
   it('handles a single retained module', () => {
     expect(nextModulePosition([7])).toBe(8);
+  });
+});
+
+describe('hasNewModule', () => {
+  it('is false when every module is already persisted', () => {
+    // Published-course edit with no new module -> save would be a zero-write.
+    expect(hasNewModule([{ id: 'm1' }, { id: 'm2' }])).toBe(false);
+  });
+
+  it('is true when at least one module has no id', () => {
+    expect(hasNewModule([{ id: 'm1' }, {}])).toBe(true);
+  });
+
+  it('is true when a module id is undefined', () => {
+    expect(hasNewModule([{ id: undefined }])).toBe(true);
+  });
+
+  it('is false for an empty list', () => {
+    // `some` is vacuously false; the editor's own validate() rejects an empty
+    // module list before the guard is ever reached, so this is just defensive.
+    expect(hasNewModule([])).toBe(false);
   });
 });
 

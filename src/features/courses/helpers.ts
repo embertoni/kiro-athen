@@ -213,6 +213,23 @@ export function nextModulePosition(existingPositions: number[]): number {
 }
 
 // ---------------------------------------------------------------------------
+// New-module detection (published-course edit guard)
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether the given module drafts include at least one brand-new module, i.e.
+ * one that has not been persisted yet (no `id`).
+ *
+ * When editing an already-published course, `saveCourseTree` only inserts
+ * brand-new modules and skips every pre-existing (id-bearing) one. If no new
+ * module exists the save would be a no-op, so the editor uses this predicate to
+ * block a misleading zero-write "success". Pure and dependency-free.
+ */
+export function hasNewModule(modules: { id?: string }[]): boolean {
+  return modules.some((m) => !m.id);
+}
+
+// ---------------------------------------------------------------------------
 // CourseDetail -> CourseDraft transform (edit-mode hydration)
 // ---------------------------------------------------------------------------
 
