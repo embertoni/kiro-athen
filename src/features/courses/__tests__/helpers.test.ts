@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   averageRating,
   buildCatalogPredicate,
+  canEditExistingContent,
   EMPTY_FILTERS,
   hasActiveFilters,
+  isExistingContentLocked,
   slugify,
   type SearchableCourse,
 } from '../helpers';
@@ -184,5 +186,55 @@ describe('averageRating', () => {
   it('averages and rounds to one decimal', () => {
     expect(averageRating([5, 4, 4])).toBe(4.3);
     expect(averageRating([5, 0])).toBe(2.5);
+  });
+});
+
+describe('isExistingContentLocked', () => {
+  it('is false for a brand-new course being created (not yet persisted)', () => {
+    // Creation flow: no draft.id, status draft -> fully editable.
+    expect(
+      isExistingContentLocked({ isExistingCourse: false, status: 'draft' }),
+    ).toBe(false);
+  });
+
+  it('is false for a brand-new course being published for the first time', () => {
+    // Publishing from the creation flow is still unlocked (nothing pre-exists).
+    expect(
+      isExistingContentLocked({ isExistingCourse: false, status: 'published' }),
+    ).toBe(false);
+  });
+
+  it('is false for an existing DRAFT course (fully editable)', () => {
+    expect(
+      isExistingContentLocked({ isExistingCourse: true, status: 'draft' }),
+    ).toBe(false);
+  });
+
+  it('is true for an existing PUBLISHED course (content immutable)', () => {
+    expect(
+      isExistingContentLocked({ isExistingCourse: true, status: 'published' }),
+    ).toBe(true);
+  });
+});
+
+describe('canEditExistingContent', () => {
+  it('allows editing an existing draft course', () => {
+    expect(
+      canEditExistingContent({ isExistingCourse: true, status: 'draft' }),
+    ).toBe(true);
+  });
+
+  it('locks editing pre-existing content of a published course', () => {
+    // Existing content is locked; brand-new modules can still be added, which
+    // the UI gates on each entity's persisted flag, not on this helper.
+    expect(
+      canEditExistingContent({ isExistingCourse: true, status: 'published' }),
+    ).toBe(false);
+  });
+
+  it('allows editing while still creating a new course', () => {
+    expect(
+      canEditExistingContent({ isExistingCourse: false, status: 'draft' }),
+    ).toBe(true);
   });
 });
