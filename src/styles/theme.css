@@ -859,3 +859,291 @@ button {
     font-size: 15px;
   }
 }
+
+/* ------------------------------------------------------------------------- */
+/* Floating notebook overlay (NotebookOverlay) + its dashboard toggle button. */
+/*                                                                           */
+/* The overlay is a fixed, draggable + resizable panel that floats above the */
+/* page. It is NON-modal (no backdrop) so the page underneath stays          */
+/* interactive. Styling uses the shared purple/gold tokens, var(--radius-lg) */
+/* and var(--shadow-md) to match the Modal primitive.                        */
+/* ------------------------------------------------------------------------- */
+
+/* Dashboard toggle: bottom-left free corner so it does not collide with the
+   top-left selector, top-right panel toggle, bottom carousel or notice board. */
+.dash__notebook-toggle {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--brand-purple);
+  border-radius: var(--radius-lg);
+  background: var(--brand-purple);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition:
+    filter 0.15s ease,
+    transform 0.15s ease;
+}
+
+.dash__notebook-toggle:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.dash__notebook-toggle--active {
+  background: var(--brand-gold);
+  border-color: var(--brand-gold-dark);
+  color: var(--brand-purple-dark);
+}
+
+.nb-overlay {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  min-height: 200px;
+  overflow: hidden;
+  border: 1px solid var(--brand-purple-light);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-md);
+}
+
+.nb-overlay__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--brand-purple);
+  color: #fff;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.nb-overlay__header:active {
+  cursor: grabbing;
+}
+
+.nb-overlay__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.nb-overlay__close {
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.nb-overlay__close:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.nb-overlay__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 0;
+  padding: 0.6rem 0.7rem;
+  overflow: hidden;
+}
+
+.nb-overlay__row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.nb-overlay__select {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.85rem;
+}
+
+.nb-overlay__tabs {
+  display: flex;
+  gap: 0.3rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+}
+
+.nb-overlay__tab {
+  flex-shrink: 0;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.nb-overlay__tab--active {
+  background: var(--brand-purple);
+  border-color: var(--brand-purple);
+  color: #fff;
+  font-weight: 600;
+}
+
+.nb-overlay__tab--add {
+  font-weight: 700;
+  color: var(--brand-purple);
+}
+
+.nb-overlay__editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.nb-overlay__editor-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.nb-overlay__title-input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-weight: 600;
+}
+
+.nb-overlay__textarea {
+  flex: 1;
+  min-height: 0;
+  resize: none;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  line-height: 1.5;
+}
+
+.nb-overlay__title-input:focus,
+.nb-overlay__textarea:focus,
+.nb-overlay__select:focus {
+  outline: none;
+  border-color: var(--brand-purple);
+}
+
+.nb-overlay__actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.nb-overlay__hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+/* Invisible resize handles on the 4 edges and 4 corners. */
+.nb-overlay__resize {
+  position: absolute;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.nb-overlay__resize--n,
+.nb-overlay__resize--s {
+  left: 8px;
+  right: 8px;
+  height: 7px;
+  cursor: ns-resize;
+}
+
+.nb-overlay__resize--n {
+  top: 0;
+}
+
+.nb-overlay__resize--s {
+  bottom: 0;
+}
+
+.nb-overlay__resize--e,
+.nb-overlay__resize--w {
+  top: 8px;
+  bottom: 8px;
+  width: 7px;
+  cursor: ew-resize;
+}
+
+.nb-overlay__resize--e {
+  right: 0;
+}
+
+.nb-overlay__resize--w {
+  left: 0;
+}
+
+.nb-overlay__resize--ne,
+.nb-overlay__resize--nw,
+.nb-overlay__resize--se,
+.nb-overlay__resize--sw {
+  z-index: 3;
+  width: 12px;
+  height: 12px;
+}
+
+.nb-overlay__resize--nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.nb-overlay__resize--ne {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+
+.nb-overlay__resize--sw {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
+}
+
+.nb-overlay__resize--se {
+  bottom: 0;
+  right: 0;
+  cursor: nwse-resize;
+}

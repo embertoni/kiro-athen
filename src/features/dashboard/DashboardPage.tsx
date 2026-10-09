@@ -27,6 +27,7 @@ import { Modal } from '@/components/ui/Modal';
 import { formatError } from '@/lib/errors';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { LessonRunner } from '@/features/lesson/LessonRunner';
+import { NotebookOverlay } from '@/features/notebook/NotebookOverlay';
 import { FriendsCourseRanking } from '@/features/rankings/FriendsCourseRanking';
 import {
   useAnnouncements,
@@ -55,6 +56,12 @@ export function DashboardPage() {
   // The lesson currently open in the pop-up modal (null = closed). Clicking an
   // available lesson node opens it here instead of navigating to /lesson/:id.
   const [openLessonId, setOpenLessonId] = useState<string | null>(null);
+
+  // The floating notebook overlay (NotebookOverlay) toggled by the dashboard
+  // button below. It is an ADDITIONAL surface: the /notebook full page and the
+  // "Cadernos" sidebar nav item stay intact. The overlay is non-modal so the
+  // dashboard stays interactive while it is open.
+  const [notebookOpen, setNotebookOpen] = useState(false);
 
   const overviewQuery = useDashboardOverview(userId);
   const overview = overviewQuery.data;
@@ -363,6 +370,27 @@ export function DashboardPage() {
       {/* Bottom-right: notice board (Salas mode only) */}
       {mode === 'salas' && selectedRoomId && (
         <NoticeBoard roomId={selectedRoomId} />
+      )}
+
+      {/* Bottom-left: floating notebook toggle. Opens the draggable overlay
+          (an additional surface; the /notebook page + "Cadernos" nav remain). */}
+      <button
+        type="button"
+        className={
+          notebookOpen
+            ? 'dash__notebook-toggle dash__notebook-toggle--active'
+            : 'dash__notebook-toggle'
+        }
+        aria-pressed={notebookOpen}
+        onClick={() => setNotebookOpen((o) => !o)}
+      >
+        <span aria-hidden="true">📖</span>
+        {notebookOpen ? 'Fechar caderno' : 'Caderno'}
+      </button>
+
+      {/* Floating notebook overlay (non-modal, draggable + resizable). */}
+      {notebookOpen && (
+        <NotebookOverlay onClose={() => setNotebookOpen(false)} />
       )}
 
       {/* Lesson pop-up: opens over the dashboard instead of navigating away.
