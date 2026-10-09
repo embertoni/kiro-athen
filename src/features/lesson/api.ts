@@ -182,6 +182,11 @@ export async function submitAnswers(
  * Call the server-authoritative finalize_attempt RPC. It grades every answer,
  * sets attempt totals, inserts the completion, updates progress and (for course
  * context) global XP/level, then returns the authoritative totals to display.
+ *
+ * Anti-regrind: the server may return xpEarned = 0 (or less than the raw
+ * question XP) when the user already answered a question correctly in a prior
+ * finalized attempt. The client does not recompute XP, so the "+X XP" message
+ * naturally reflects whatever the server awarded.
  */
 export async function finalizeAttempt(
   attemptId: string,
