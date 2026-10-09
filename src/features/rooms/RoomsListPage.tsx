@@ -16,6 +16,7 @@ import { Select } from '@/components/ui/Select';
 import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { formatError } from '@/lib/errors';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/features/auth/AuthProvider';
 import {
@@ -65,9 +66,7 @@ export function RoomsListPage() {
       }
       await roomsQuery.refetch();
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'Não foi possível entrar.',
-      );
+      toast.error(formatError(err, 'Não foi possível entrar na sala'));
     }
   }
 
@@ -143,7 +142,12 @@ export function RoomsListPage() {
         </div>
       )}
       {roomsQuery.isError && (
-        <ErrorText>Não foi possível carregar suas salas.</ErrorText>
+        <ErrorText>
+          {formatError(
+            roomsQuery.error,
+            'Não foi possível carregar suas salas',
+          )}
+        </ErrorText>
       )}
 
       {roomsQuery.data && (
@@ -283,9 +287,7 @@ function CreateRoomModal({
       toast.success('Sala criada!');
       onCreated(room.id);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Não foi possível criar a sala.',
-      );
+      setError(formatError(err, 'Não foi possível criar a sala'));
     }
   }
 

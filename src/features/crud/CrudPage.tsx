@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { formatError } from '@/lib/errors';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/features/auth/AuthProvider';
 import {
@@ -108,13 +109,17 @@ function EntityTable({ entity }: { entity: CrudEntity }) {
       await del.mutateAsync(id);
       toast.success('Registro excluído.');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao excluir.');
+      toast.error(formatError(err, 'Não foi possível excluir o registro'));
     }
   }
 
   if (list.isLoading) return <Spinner size={28} />;
   if (list.isError)
-    return <ErrorText>Não foi possível carregar os dados.</ErrorText>;
+    return (
+      <ErrorText>
+        {formatError(list.error, 'Não foi possível carregar os dados')}
+      </ErrorText>
+    );
 
   const rows = list.data ?? [];
 

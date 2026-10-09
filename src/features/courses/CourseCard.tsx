@@ -15,6 +15,8 @@ interface CourseCardProps {
   /** When provided, shows an inline enroll button. */
   onEnroll?: () => void;
   enrolling?: boolean;
+  /** When provided (creator-only), shows an inline "Editar" button. */
+  onEdit?: () => void;
 }
 
 const cardStyle: React.CSSProperties = {
@@ -51,6 +53,7 @@ export function CourseCard({
   onOpen,
   onEnroll,
   enrolling,
+  onEdit,
 }: CourseCardProps) {
   return (
     <div
@@ -189,6 +192,19 @@ export function CourseCard({
         >
           Ver detalhes
         </Button>
+        {onEdit && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+          >
+            Editar
+          </Button>
+        )}
         {onEnroll &&
           (enrolled ? (
             <Button type="button" variant="secondary" size="sm" disabled>

@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { formatError } from '@/lib/errors';
 import { useAuth } from '@/features/auth/AuthProvider';
 import type { NotificationRow } from '@/types/database';
 import { useMarkAllRead, useMarkRead, useNotifications } from './api';
@@ -74,7 +75,12 @@ export function NotificationsPage() {
 
       {query.isLoading && <Spinner size={28} />}
       {query.isError && (
-        <ErrorText>Não foi possível carregar as notificações.</ErrorText>
+        <ErrorText>
+          {formatError(
+            query.error,
+            'Não foi possível carregar as notificações',
+          )}
+        </ErrorText>
       )}
 
       {query.data && items.length === 0 && (

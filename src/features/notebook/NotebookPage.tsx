@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { formatError } from '@/lib/errors';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/features/auth/AuthProvider';
 import type { NotebookPageRow } from '@/types/database';
@@ -141,7 +142,12 @@ export function NotebookPage() {
 
       {notebooksQuery.isLoading && <Spinner size={28} />}
       {notebooksQuery.isError && (
-        <ErrorText>Não foi possível carregar seus cadernos.</ErrorText>
+        <ErrorText>
+          {formatError(
+            notebooksQuery.error,
+            'Não foi possível carregar seus cadernos',
+          )}
+        </ErrorText>
       )}
 
       {notebooks.length === 0 && !notebooksQuery.isLoading ? (

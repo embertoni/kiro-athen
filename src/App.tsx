@@ -59,6 +59,15 @@ export default function App() {
               <Route path="/notebook" element={<NotebookPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/create" element={<CreateCoursePage />} />
+              {/*
+                Course editing reuses the SAME CreateCoursePage component. The
+                scheme is /create/:courseId: the presence of the :courseId
+                param switches the page into edit mode (loads the existing
+                course tree, applies migration 0019 lock rules), while bare
+                /create stays the creation flow. Keeping both on one route tree
+                node co-locates the editor and avoids a duplicate page.
+              */}
+              <Route path="/create/:courseId" element={<CreateCoursePage />} />
             </Route>
           </Route>
 

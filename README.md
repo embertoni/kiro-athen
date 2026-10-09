@@ -34,6 +34,11 @@ Storage); deploy na Vercel.
    npm run dev
    ```
 
+> **Banco de dados / setup manual:** para os passos manuais de aplicacao das
+> migracoes (incluindo as mais recentes `0017`-`0019`), regeneracao dos tipos
+> TypeScript e pre-requisitos de ambiente, veja
+> [`docs/DATABASE_SETUP.md`](docs/DATABASE_SETUP.md).
+
 ## Scripts
 
 | Script                 | Descricao                                     |

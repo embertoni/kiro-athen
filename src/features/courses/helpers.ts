@@ -7,6 +7,13 @@
  */
 
 import type { CourseStatus, CourseVisibility } from '@/types/database';
+import type {
+  CourseDetail,
+  CourseDraft,
+  LessonDraft,
+  ModuleDraft,
+  QuestionDraft,
+} from './api';
 
 // ---------------------------------------------------------------------------
 // slugify
@@ -203,4 +210,86 @@ export function canEditExistingContent(state: EditableCourseState): boolean {
 export function nextModulePosition(existingPositions: number[]): number {
   if (existingPositions.length === 0) return 0;
   return Math.max(...existingPositions) + 1;
+}
+
+// ---------------------------------------------------------------------------
+// New-module detection (published-course edit guard)
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether the given module drafts include at least one brand-new module, i.e.
+ * one that has not been persisted yet (no `id`).
+ *
+ * When editing an already-published course, `saveCourseTree` only inserts
+ * brand-new modules and skips every pre-existing (id-bearing) one. If no new
+ * module exists the save would be a no-op, so the editor uses this predicate to
+ * block a misleading zero-write "success". Pure and dependency-free.
+ */
+export function hasNewModule(modules: { id?: string }[]): boolean {
+  return modules.some((m) => !m.id);
+}
+
+// ---------------------------------------------------------------------------
+// CourseDetail -> CourseDraft transform (edit-mode hydration)
+// ---------------------------------------------------------------------------
+
+/**
+ * Map a loaded {@link CourseDetail} (from `useCourseDetail`) into the editor's
+ * {@link CourseDraft} form shape so an existing course can be opened in the
+ * create/edit page.
+ *
+ * The transform PRESERVES every persisted id (course.id, module.id, lesson.id,
+ * question.id) and stored `position`, which is what makes the editor's
+ * `isPersisted()` lock gate and `saveCourseTree`'s published-append / UPDATE
+ * paths behave correctly. `config` (Json) and `xp_value` -> `xpValue` are
+ * carried through unchanged; nullable `description`/`category` collapse to ''.
+ *
+ * Pure and dependency-free (types only): it never touches react or supabase,
+ * so it stays unit-testable in isolation. `useCourseDetail` already returns the
+ * modules/lessons/questions position-sorted, so no re-sorting is done here.
+ */
+export function courseDetailToDraft(detail: CourseDetail): CourseDraft {
+  const { course } = detail;
+
+  const modules: ModuleDraft[] = detail.modules.map((m): ModuleDraft => {
+    const lessons: LessonDraft[] = m.lessons.map((l): LessonDraft => {
+      const questions: QuestionDraft[] = l.questions.map(
+        (q): QuestionDraft => ({
+          id: q.id,
+          type: q.type,
+          prompt: q.prompt,
+          position: q.position,
+          config: q.config,
+          xpValue: q.xp_value,
+        }),
+      );
+      return {
+        id: l.lesson.id,
+        title: l.lesson.title,
+        content: l.lesson.content ?? '',
+        position: l.lesson.position,
+        questions,
+      };
+    });
+    return {
+      id: m.module.id,
+      title: m.module.title,
+      description: m.module.description ?? '',
+      position: m.module.position,
+      color: m.module.color,
+      lessons,
+    };
+  });
+
+  return {
+    id: course.id,
+    title: course.title,
+    slug: course.slug,
+    description: course.description ?? '',
+    category: course.category ?? '',
+    tags: course.tags ?? [],
+    visibility: course.visibility,
+    status: course.status,
+    modules,
+  };
 }

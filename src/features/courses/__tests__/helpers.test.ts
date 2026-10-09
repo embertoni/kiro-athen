@@ -3,13 +3,16 @@ import {
   averageRating,
   buildCatalogPredicate,
   canEditExistingContent,
+  courseDetailToDraft,
   EMPTY_FILTERS,
   hasActiveFilters,
+  hasNewModule,
   isExistingContentLocked,
   nextModulePosition,
   slugify,
   type SearchableCourse,
 } from '../helpers';
+import type { CourseDetail } from '../api';
 
 describe('slugify', () => {
   it('lowercases and hyphenates', () => {
@@ -272,5 +275,158 @@ describe('nextModulePosition', () => {
 
   it('handles a single retained module', () => {
     expect(nextModulePosition([7])).toBe(8);
+  });
+});
+
+describe('hasNewModule', () => {
+  it('is false when every module is already persisted', () => {
+    // Published-course edit with no new module -> save would be a zero-write.
+    expect(hasNewModule([{ id: 'm1' }, { id: 'm2' }])).toBe(false);
+  });
+
+  it('is true when at least one module has no id', () => {
+    expect(hasNewModule([{ id: 'm1' }, {}])).toBe(true);
+  });
+
+  it('is true when a module id is undefined', () => {
+    expect(hasNewModule([{ id: undefined }])).toBe(true);
+  });
+
+  it('is false for an empty list', () => {
+    // `some` is vacuously false; the editor's own validate() rejects an empty
+    // module list before the guard is ever reached, so this is just defensive.
+    expect(hasNewModule([])).toBe(false);
+  });
+});
+
+describe('courseDetailToDraft', () => {
+  // A representative loaded course tree. Only the fields the transform reads
+  // are modelled; the rest of the Row columns are irrelevant here, so the
+  // fixture is cast to CourseDetail at the boundary.
+  function buildDetail(
+    overrides: Partial<CourseDetail['course']> = {},
+  ): CourseDetail {
+    return {
+      course: {
+        id: 'course-1',
+        creator_id: 'user-1',
+        title: 'Introdução à Programação',
+        slug: 'introducao-a-programacao',
+        description: 'Lógica e primeiros passos.',
+        category: 'Tecnologia',
+        tags: ['python', 'iniciante'],
+        cover_url: null,
+        status: 'published',
+        visibility: 'public',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+        ...overrides,
+      },
+      creator: null,
+      modules: [
+        {
+          module: {
+            id: 'module-1',
+            course_id: 'course-1',
+            title: 'Módulo 1',
+            description: 'Fundamentos',
+            position: 0,
+            color: '#123456',
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: '2024-01-01T00:00:00Z',
+          },
+          lessons: [
+            {
+              lesson: {
+                id: 'lesson-1',
+                module_id: 'module-1',
+                title: 'Aula 1',
+                content: 'Conteúdo da aula',
+                position: 0,
+                status: 'published',
+                created_at: '2024-01-01T00:00:00Z',
+                updated_at: '2024-01-01T00:00:00Z',
+              },
+              questions: [
+                {
+                  id: 'question-1',
+                  lesson_id: 'lesson-1',
+                  type: 'multiple_choice',
+                  prompt: 'Qual a resposta?',
+                  position: 0,
+                  config: { options: ['a', 'b'], correctIndex: 1 },
+                  xp_value: 25,
+                  created_at: '2024-01-01T00:00:00Z',
+                  updated_at: '2024-01-01T00:00:00Z',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      averageRating: 0,
+      reviewCount: 0,
+      recentComments: [],
+      studentCount: 0,
+      firstLessonId: 'lesson-1',
+    } as unknown as CourseDetail;
+  }
+
+  it('maps the course fields including id, status and visibility', () => {
+    const draft = courseDetailToDraft(buildDetail());
+    expect(draft.id).toBe('course-1');
+    expect(draft.title).toBe('Introdução à Programação');
+    expect(draft.slug).toBe('introducao-a-programacao');
+    expect(draft.status).toBe('published');
+    expect(draft.visibility).toBe('public');
+  });
+
+  it('preserves persisted ids and positions through the whole tree', () => {
+    const draft = courseDetailToDraft(buildDetail());
+    const module = draft.modules[0];
+    const lesson = module.lessons[0];
+    const question = lesson.questions[0];
+    expect(module.id).toBe('module-1');
+    expect(module.position).toBe(0);
+    expect(lesson.id).toBe('lesson-1');
+    expect(lesson.position).toBe(0);
+    expect(question.id).toBe('question-1');
+    expect(question.position).toBe(0);
+  });
+
+  it('carries question config (Json) and maps xp_value -> xpValue', () => {
+    const draft = courseDetailToDraft(buildDetail());
+    const question = draft.modules[0].lessons[0].questions[0];
+    expect(question.config).toEqual({ options: ['a', 'b'], correctIndex: 1 });
+    expect(question.xpValue).toBe(25);
+    expect(question.type).toBe('multiple_choice');
+  });
+
+  it('maps a null description/category to an empty string', () => {
+    const draft = courseDetailToDraft(
+      buildDetail({ description: null, category: null }),
+    );
+    expect(draft.description).toBe('');
+    expect(draft.category).toBe('');
+  });
+
+  it('maps null lesson content to an empty string', () => {
+    const detail = buildDetail();
+    detail.modules[0].lessons[0].lesson.content = null;
+    const draft = courseDetailToDraft(detail);
+    expect(draft.modules[0].lessons[0].content).toBe('');
+  });
+
+  it('preserves tags and a private visibility', () => {
+    const draft = courseDetailToDraft(
+      buildDetail({ tags: ['a', 'b', 'c'], visibility: 'private' }),
+    );
+    expect(draft.tags).toEqual(['a', 'b', 'c']);
+    expect(draft.visibility).toBe('private');
+  });
+
+  it('maps a draft course status', () => {
+    const draft = courseDetailToDraft(buildDetail({ status: 'draft' }));
+    expect(draft.status).toBe('draft');
   });
 });

@@ -8,6 +8,7 @@
 
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { formatError } from '@/lib/errors';
 import { useUserMedals } from './api';
 
 interface MedalsPanelProps {
@@ -41,7 +42,9 @@ export function MedalsPanel({ userId, streakCount }: MedalsPanelProps) {
 
       {query.isLoading && <Spinner size={24} />}
       {query.isError && (
-        <ErrorText>Não foi possível carregar as medalhas.</ErrorText>
+        <ErrorText>
+          {formatError(query.error, 'Não foi possível carregar as medalhas')}
+        </ErrorText>
       )}
 
       {query.data && (

@@ -9,6 +9,7 @@
 
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { formatError } from '@/lib/errors';
 import { useFriendsCoursePac } from './api';
 import { pacDisplay, sortByPacDesc } from '@/features/rooms/helpers';
 
@@ -47,7 +48,12 @@ export function FriendsCourseRanking({
 
       {query.isLoading && <Spinner size={24} />}
       {query.isError && (
-        <ErrorText>Não foi possível carregar o ranking de amigos.</ErrorText>
+        <ErrorText>
+          {formatError(
+            query.error,
+            'Não foi possível carregar o ranking de amigos',
+          )}
+        </ErrorText>
       )}
 
       {query.data && (

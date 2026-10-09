@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
 import { useToast } from '@/components/ui/Toast';
+import { formatError } from '@/lib/errors';
 import { useAuth } from '@/features/auth/AuthProvider';
 import {
   useAddComment,
@@ -92,9 +93,7 @@ export function CourseDetailModal({
       await enroll.mutateAsync({ userId, courseId });
       toast.success('Matrícula realizada!');
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : 'Não foi possível matricular.',
-      );
+      setActionError(formatError(err, 'Não foi possível matricular no curso'));
     }
   }
 
@@ -114,9 +113,7 @@ export function CourseDetailModal({
       await upsertReview.mutateAsync({ userId, courseId, rating });
       toast.success('Avaliação registrada!');
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : 'Não foi possível avaliar.',
-      );
+      setActionError(formatError(err, 'Não foi possível avaliar o curso'));
     }
   }
 
@@ -133,7 +130,7 @@ export function CourseDetailModal({
       toast.success('Comentário publicado!');
     } catch (err) {
       setActionError(
-        err instanceof Error ? err.message : 'Não foi possível comentar.',
+        formatError(err, 'Não foi possível publicar o comentário'),
       );
     }
   }
@@ -151,6 +148,17 @@ export function CourseDetailModal({
       footer={
         detail ? (
           <>
+            {detail.creator?.id && detail.creator.id === userId && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  onClose();
+                  navigate(`/create/${detail.course.id}`);
+                }}
+              >
+                Editar
+              </Button>
+            )}
             {enrolled ? (
               <Button variant="primary" onClick={handleStart}>
                 Começar curso
@@ -180,7 +188,9 @@ export function CourseDetailModal({
       )}
 
       {detailQuery.isError && (
-        <ErrorText>Não foi possível carregar o curso.</ErrorText>
+        <ErrorText>
+          {formatError(detailQuery.error, 'Não foi possível carregar o curso')}
+        </ErrorText>
       )}
 
       {detail && (

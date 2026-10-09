@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { formatError } from '@/lib/errors';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/features/auth/AuthProvider';
 import {
@@ -45,7 +46,7 @@ export function FriendsPage() {
       toast.success(`Pedido enviado para @${target.username}.`);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : 'Não foi possível enviar.',
+        formatError(err, 'Não foi possível enviar o pedido de amizade'),
       );
     }
   }
@@ -106,7 +107,12 @@ export function FriendsPage() {
 
       {friendsQuery.isLoading && <Spinner size={28} />}
       {friendsQuery.isError && (
-        <ErrorText>Não foi possível carregar seus amigos.</ErrorText>
+        <ErrorText>
+          {formatError(
+            friendsQuery.error,
+            'Não foi possível carregar seus amigos',
+          )}
+        </ErrorText>
       )}
 
       {friendsQuery.data && (

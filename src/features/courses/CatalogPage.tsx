@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { formatError } from '@/lib/errors';
 import {
   useCatalog,
   useEnroll,
@@ -91,9 +92,7 @@ export function CatalogPage() {
       await enroll.mutateAsync({ userId, courseId });
       toast.success('Matrícula realizada!');
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'Não foi possível matricular.',
-      );
+      toast.error(formatError(err, 'Não foi possível matricular no curso'));
     }
   }
 
@@ -231,7 +230,12 @@ export function CatalogPage() {
         <>
           {catalogQuery.isError && (
             <div style={{ marginTop: '1rem' }}>
-              <ErrorText>Não foi possível carregar o catálogo.</ErrorText>
+              <ErrorText>
+                {formatError(
+                  catalogQuery.error,
+                  'Não foi possível carregar o catálogo',
+                )}
+              </ErrorText>
             </div>
           )}
           <div style={gridStyle}>
@@ -351,6 +355,7 @@ export function CatalogPage() {
                 onOpen={() => setOpenCourseId(c.id)}
                 onEnroll={() => handleEnroll(c.id)}
                 enrolling={enroll.isPending}
+                onEdit={() => navigate(`/create/${c.id}`)}
               />
             ))}
           </div>
