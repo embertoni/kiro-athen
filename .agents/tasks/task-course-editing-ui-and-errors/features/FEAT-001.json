@@ -1,0 +1,33 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Make the course-editing capability (built server-side in migration 0019 and dormant in CreateCoursePage.tsx) actually reachable and usable from the UI. Add an edit route that mounts the existing editor in edit mode, load the full existing course tree into the editor's form state, wire the already-built lock logic (draft = fully editable + publishable; published = add-new-modules-only, existing content read-only), and add a creator-only 'Editar' entry point. ASK 1 of the user instruction.",
+  "status": "pending",
+  "steps": [
+    "Add a route for editing in src/App.tsx under the existing ProtectedRoute>AppShell group, mounting the same CreateCoursePage component. Use the scheme `/create/:courseId` (keeps the editor component/route colocated; the param presence switches the page into edit mode). Keep the existing `/create` route for creation. Document this scheme choice in a code comment and in the FEAT findings.",
+    "In src/features/courses/api.ts add a helper to transform a CourseDetail (from useCourseDetail) into a CourseDraft (the editor's form shape). Prefer putting the PURE transform in src/features/courses/helpers.ts as e.g. `courseDetailToDraft(detail: CourseDetail): CourseDraft` so it is unit-testable (import types as needed; keep it dependency-free). It must map course fields (id, title, slug, description ?? '', category ?? '', tags, visibility, status) and nested modules->lessons->questions INCLUDING their persisted ids (module.id, lesson.id, question.id) and positions, config, xpValue, so the editor's isPersisted() gate and saveCourseTree's published-append logic work correctly. Note question.config is Json and xp_value maps to xpValue.",
+    "In src/features/courses/create/CreateCoursePage.tsx: read the :courseId route param (useParams). When present, treat as edit mode: call useCourseDetail(courseId) to fetch the tree, and when it resolves hydrate the form state (title, slug, description, category, tagsText joined by ', ', visibility, modules via courseDetailToDraft) exactly once (guard against re-hydrating on every render, e.g. a ref or a 'hydrated' flag keyed by courseId). Replace the hardcoded `const [courseId] = useState(undefined)` and `const [courseStatus] = useState('draft')` with values derived from the loaded course (courseId from the param; courseStatus from the loaded course.status). Set slugTouched appropriately so the loaded slug is preserved (do not auto-regenerate the slug from title in edit mode).",
+    "Guard edit mode: while useCourseDetail is loading show a Spinner; if it errors show an ErrorText (use the shared error formatter from FEAT-002 if that feature is done first, otherwise a specific message). Enforce creator-only access client-side: if the loaded course.creator_id !== session.user.id (and user is not admin), do not render the editor form, show a clear 'Você não tem permissão para editar este curso.' message (the server RLS is the real gate; this is UX). ",
+    "Update the page heading/subtitle and the save buttons to reflect edit mode: title like 'Editar curso' vs 'Criar curso'; when editing a PUBLISHED course, make clear via helper text that existing content is locked and only new modules can be added, and that 'Publicar' is not shown for an already-published course (saving an already-published course just saves additions). Keep draft editing showing both 'Salvar rascunho' and 'Publicar'. Reuse the existing contentLocked/moduleLocked rendering already present.",
+    "Add a creator-only 'Editar' affordance to reach `/create/:courseId`. In src/features/courses/CatalogPage.tsx 'Criados por mim' tab, pass an onEdit handler to CourseCard that navigates to `/create/${c.id}`. In src/features/courses/CourseCard.tsx add an optional `onEdit?: () => void` prop and render an 'Editar' button (only when provided) alongside the existing actions, stopping event propagation like the other buttons. Optionally also surface an 'Editar' button in CourseDetailModal.tsx when the current user is the course creator (detail.creator?.id === userId) that closes the modal and navigates to the edit route.",
+    "Verify saveCourseTree/useSaveCourse already handle the edit payload correctly for both branches (draft rebuild vs published append) given a CourseDraft that now carries ids; no change expected there, but confirm the draft produced in edit mode includes draft.id so the UPDATE path (not INSERT) runs. buildDraft() already spreads courseId into id — confirm courseId is now the real id in edit mode."
+  ],
+  "acceptance_criteria": [
+    "A creator can navigate from the catalog 'Criados por mim' tab (and/or the course detail modal) to an edit screen for one of their own courses via a visible 'Editar' control.",
+    "Opening `/create/:courseId` loads the full existing course (general info + all modules, lessons, questions with their saved values) into the editor form.",
+    "Editing a DRAFT course allows full edits and both 'Salvar rascunho' and 'Publicar'; saving persists via the UPDATE/replace-children path in saveCourseTree.",
+    "Editing a PUBLISHED course shows existing modules read-only (inputs disabled, remove/add-lesson/add-question hidden for persisted modules) while still allowing brand-new modules to be added and saved, matching migration 0019.",
+    "The transform helper courseDetailToDraft is covered by unit tests (ids/positions/config preserved; description/category null->'' handling; tags/visibility/status mapping).",
+    "A non-creator (and non-admin) hitting the edit route sees a permission message rather than the editable form.",
+    "npm run build passes; npm run lint stays at 0 errors and no new warnings; npm run test passes including the new transform tests."
+  ],
+  "verification": [
+    "export PATH=\"/opt/toolchains/.nvm/versions/node/v22.23.3/bin:$PATH\" && cd /projects/sandbox/kiro-athen",
+    "npm run build  (must be green)",
+    "npm run test  (all pass, including new courseDetailToDraft tests)",
+    "npm run lint  (0 errors; exactly the 6 pre-existing warnings, none new)",
+    "Structural review: confirm /create/:courseId mounts CreateCoursePage; confirm edit-mode hydration runs once; confirm buildDraft carries the real id; confirm published-course rendering keeps persisted modules read-only. (No live Supabase: enroll/save round-trip not executable here.)"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

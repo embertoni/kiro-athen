@@ -8,6 +8,7 @@
 
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { formatError } from '@/lib/errors';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useGlobalRanking } from './api';
 
@@ -35,7 +36,9 @@ export function GlobalRankingPage() {
         </div>
       )}
       {query.isError && (
-        <ErrorText>Não foi possível carregar o ranking.</ErrorText>
+        <ErrorText>
+          {formatError(query.error, 'Não foi possível carregar o ranking')}
+        </ErrorText>
       )}
 
       {query.data && (

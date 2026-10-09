@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { extractErrorMessage, formatError } from '@/lib/errors';
 import type { QuestionType, Json, CourseStatus } from '@/types/database';
 import {
   useSaveCourse,
@@ -211,13 +212,12 @@ export function CreateCoursePage() {
       );
       navigate('/catalog', { state: { createdCourseId: course.id } });
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Não foi possível salvar o curso.';
+      const cause = extractErrorMessage(err);
       // Unique-slug violations surface as a Postgres error; make it friendly.
       setFormError(
-        /duplicate|unique/i.test(message)
+        cause && /duplicate|unique/i.test(cause)
           ? 'Já existe um curso com esse slug. Escolha outro.'
-          : message,
+          : formatError(err, 'Não foi possível salvar o curso'),
       );
     }
   }

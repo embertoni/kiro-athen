@@ -24,6 +24,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { formatError } from '@/lib/errors';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { FriendsCourseRanking } from '@/features/rankings/FriendsCourseRanking';
 import {
@@ -165,7 +166,11 @@ export function DashboardPage() {
   }
 
   if (overviewQuery.isError) {
-    return <ErrorText>Não foi possível carregar o painel.</ErrorText>;
+    return (
+      <ErrorText>
+        {formatError(overviewQuery.error, 'Não foi possível carregar o painel')}
+      </ErrorText>
+    );
   }
 
   const dailyMissions = deriveDailyMissions({
@@ -191,7 +196,12 @@ export function DashboardPage() {
         )}
         {trailQuery.isError && (
           <div className="dash-center">
-            <ErrorText>Não foi possível carregar a trilha.</ErrorText>
+            <ErrorText>
+              {formatError(
+                trailQuery.error,
+                'Não foi possível carregar a trilha',
+              )}
+            </ErrorText>
           </div>
         )}
         {trail && (
@@ -519,7 +529,12 @@ function RoomRanking({
       ) : membersQuery.isLoading ? (
         <Spinner size={22} />
       ) : membersQuery.isError ? (
-        <ErrorText>Não foi possível carregar o ranking da sala.</ErrorText>
+        <ErrorText>
+          {formatError(
+            membersQuery.error,
+            'Não foi possível carregar o ranking da sala',
+          )}
+        </ErrorText>
       ) : (
         <ol className="dash__room-rank">
           {sortByXpDesc(
@@ -566,7 +581,12 @@ function RoomMissions({ roomId }: { roomId: string }) {
       {missionsQuery.isLoading ? (
         <Spinner size={22} />
       ) : missionsQuery.isError ? (
-        <ErrorText>Não foi possível carregar as missões.</ErrorText>
+        <ErrorText>
+          {formatError(
+            missionsQuery.error,
+            'Não foi possível carregar as missões',
+          )}
+        </ErrorText>
       ) : (
         <ul className="dash__missions">
           {(missionsQuery.data ?? []).map((m) => (
@@ -607,7 +627,9 @@ function NoticeBoard({ roomId }: { roomId: string }) {
       {query.isLoading ? (
         <Spinner size={20} />
       ) : query.isError ? (
-        <ErrorText>Não foi possível carregar os avisos.</ErrorText>
+        <ErrorText>
+          {formatError(query.error, 'Não foi possível carregar os avisos')}
+        </ErrorText>
       ) : (
         <ul className="dash__notice-list">
           {(query.data ?? []).slice(0, 4).map((a) => (

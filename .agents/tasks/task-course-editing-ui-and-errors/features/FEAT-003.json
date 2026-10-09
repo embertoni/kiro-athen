@@ -1,0 +1,34 @@
+{
+  "id": "FEAT-003",
+  "type": "docs",
+  "description": "Write a committed markdown document enumerating the concrete MANUAL steps needed to ensure the database is up to date and ready for the current version of the page, specific to THIS repo's supabase/ setup. Covers applying the migrations (especially 0017/0018/0019), regenerating TypeScript types via `supabase gen types`, env/config prerequisites from .env.example, and an explicit note that these could not be executed/verified in the sandbox. ASK 3 of the user instruction (literally 'escreva aqui o que precisa ser feito manualmente').",
+  "status": "pending",
+  "steps": [
+    "Create docs/DATABASE_SETUP.md (create the docs/ directory). Base every step on the ACTUAL repo: supabase/config.toml (project_id=kiro-athen, major_version 17, enable_confirmations=false locally), supabase/README.md (migration map + apply options), supabase/migrations/ (0001..0019), .env.example (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY), README.md. Do NOT invent generic steps.",
+    "Document applying the migrations in filename order via the two real paths this repo supports: (A) Supabase CLI — `supabase db reset` (fresh local, applies all in order) or `supabase db push` (against a linked project), and (B) SQL editor — paste each file in order. Call out that order matters (later migrations reference earlier objects).",
+    "Specifically describe the NEWER migrations that gate behavior/shape and MUST be applied to make the current page work: 0017_enroll_own_course.sql (lets a creator self-enroll in their own course via the enrollments_insert_own RLS so finalize/enroll on own course works), 0018_no_xp_for_already_correct.sql (anti-regrind: finalize_attempt no longer re-awards XP for an already-correct question), and 0019_course_edit_gating.sql (adds courses.published_at + backfill + set_course_published_at trigger + the split draft/published INSERT/UPDATE/DELETE RLS policies on modules/lessons/questions that power the new editing UI). Explain what each enables for the UI.",
+    "Document regenerating the TypeScript types AFTER applying 0019, because it adds the courses.published_at column: `supabase gen types typescript --project-id <ref> > src/types/database.ts` (or the local `--local` variant). Note that src/types/database.ts is user-generated and intentionally never hand-edited, and that the app's TS build stays green against the generated shape via src/types/supabase-compat.ts; the client code does not query published_at directly, but the regeneration keeps the generated types faithful to the live schema.",
+    "Document the env/config prerequisites: copy .env.example to .env.local and set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (Project Settings -> API). Mention these must also be set in the deploy environment (Vercel) per README. Note that src/lib/supabase.ts throws at startup if they are missing.",
+    "Add an explicit limitation note: these steps could NOT be executed or verified in the sandbox because there is no live Supabase instance; RLS, triggers, and SQL functions can only be exercised against a real project and must be run there by a human.",
+    "Link the new doc from README.md (e.g. a short 'Banco de dados / setup manual' pointer near the existing Setup section) so it is discoverable. Keep the doc self-contained and accurate; written in Portuguese to match the repo's docs, with exact commands.",
+    "Run prettier (format:check includes markdown) so the doc passes formatting."
+  ],
+  "acceptance_criteria": [
+    "docs/DATABASE_SETUP.md exists and is self-contained, accurate to this repo (references real files: supabase/config.toml, supabase/migrations/0001..0019, .env.example), and written in Portuguese.",
+    "It documents applying migrations in order via `supabase db reset`/`supabase db push` and the SQL-editor fallback.",
+    "It specifically explains 0017, 0018, and 0019 and what each enables for the current page (self-enroll own course, anti-regrind XP, course-edit gating + published_at).",
+    "It documents `supabase gen types` into src/types/database.ts after 0019 and that the file is generated (never hand-edited).",
+    "It documents the required env vars from .env.example and that supabase.ts fails loudly when they are missing.",
+    "It explicitly states the steps were not executable/verifiable in the sandbox (no live Supabase).",
+    "README.md links to the new doc.",
+    "npm run format:check passes (markdown formatted)."
+  ],
+  "verification": [
+    "export PATH=\"/opt/toolchains/.nvm/versions/node/v22.23.3/bin:$PATH\" && cd /projects/sandbox/kiro-athen",
+    "Read docs/DATABASE_SETUP.md and confirm it matches the actual supabase/ migrations list and .env.example keys.",
+    "npm run format:check  (markdown passes prettier)",
+    "grep -n DATABASE_SETUP README.md  (link present)"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

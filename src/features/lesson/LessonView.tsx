@@ -19,6 +19,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { formatError } from '@/lib/errors';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/features/auth/AuthProvider';
 import type { QuestionRow } from '@/types/database';
@@ -105,11 +106,7 @@ export function LessonView() {
       setResult(totals);
       toast.success(`Aula concluída! +${totals.xpEarned} XP`);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Não foi possível finalizar a aula.',
-      );
+      setError(formatError(err, 'Não foi possível finalizar a aula'));
     }
   }
 
@@ -186,7 +183,9 @@ export function LessonView() {
         )}
 
         {lessonQuery.isError && (
-          <ErrorText>Não foi possível carregar a aula.</ErrorText>
+          <ErrorText>
+            {formatError(lessonQuery.error, 'Não foi possível carregar a aula')}
+          </ErrorText>
         )}
 
         {data && (

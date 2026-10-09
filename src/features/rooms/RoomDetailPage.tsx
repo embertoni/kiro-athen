@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { formatError } from '@/lib/errors';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/features/auth/AuthProvider';
 import type { PacVisibility, RoomRow } from '@/types/database';
@@ -76,7 +77,11 @@ export function RoomDetailPage() {
     );
   }
   if (detailQuery.isError || !detailQuery.data) {
-    return <ErrorText>Não foi possível carregar a sala.</ErrorText>;
+    return (
+      <ErrorText>
+        {formatError(detailQuery.error, 'Não foi possível carregar a sala')}
+      </ErrorText>
+    );
   }
 
   const { room, course, isEducator } = detailQuery.data;
@@ -172,8 +177,8 @@ function EducatorCodePanel({ room }: { room: RoomRow }) {
     try {
       await navigator.clipboard?.writeText(text);
       toast.success(`${label} copiado!`);
-    } catch {
-      toast.error('Não foi possível copiar.');
+    } catch (err) {
+      toast.error(formatError(err, 'Não foi possível copiar'));
     }
   }
 
@@ -235,8 +240,10 @@ function EducatorCodePanel({ room }: { room: RoomRow }) {
               try {
                 await regenerate.mutateAsync();
                 toast.success('Novo código gerado.');
-              } catch {
-                toast.error('Não foi possível regenerar.');
+              } catch (err) {
+                toast.error(
+                  formatError(err, 'Não foi possível regenerar o código'),
+                );
               }
             }}
           >
@@ -252,8 +259,10 @@ function EducatorCodePanel({ room }: { room: RoomRow }) {
                 toast.success(
                   room.code_active ? 'Código desativado.' : 'Código ativado.',
                 );
-              } catch {
-                toast.error('Não foi possível atualizar.');
+              } catch (err) {
+                toast.error(
+                  formatError(err, 'Não foi possível atualizar o código'),
+                );
               }
             }}
           >
@@ -298,7 +307,14 @@ function ContentTab({
   }
   if (contentQuery.isLoading) return <Spinner size={24} />;
   if (contentQuery.isError)
-    return <ErrorText>Não foi possível carregar o conteúdo.</ErrorText>;
+    return (
+      <ErrorText>
+        {formatError(
+          contentQuery.error,
+          'Não foi possível carregar o conteúdo',
+        )}
+      </ErrorText>
+    );
 
   const modules = contentQuery.data ?? [];
 
@@ -389,7 +405,14 @@ function MembersTab({
 
   if (membersQuery.isLoading) return <Spinner size={24} />;
   if (membersQuery.isError)
-    return <ErrorText>Não foi possível carregar os membros.</ErrorText>;
+    return (
+      <ErrorText>
+        {formatError(
+          membersQuery.error,
+          'Não foi possível carregar os membros',
+        )}
+      </ErrorText>
+    );
 
   const members = membersQuery.data ?? [];
   const active = members.filter((m) => m.member.status === 'active');
@@ -403,9 +426,7 @@ function MembersTab({
       toast.success('Membro adicionado.');
       setUsername('');
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'Não foi possível adicionar.',
-      );
+      toast.error(formatError(err, 'Não foi possível adicionar o membro'));
     }
   }
 
@@ -455,8 +476,10 @@ function MembersTab({
                 try {
                   await removeMember.mutateAsync(m.member.id);
                   toast.success('Membro removido (histórico mantido).');
-                } catch {
-                  toast.error('Não foi possível remover.');
+                } catch (err) {
+                  toast.error(
+                    formatError(err, 'Não foi possível remover o membro'),
+                  );
                 }
               }}
             />
@@ -581,8 +604,8 @@ function AnnouncementsTab({
       toast.success('Aviso publicado.');
       setTitle('');
       setContent('');
-    } catch {
-      toast.error('Não foi possível publicar.');
+    } catch (err) {
+      toast.error(formatError(err, 'Não foi possível publicar o aviso'));
     }
   }
 
@@ -627,7 +650,9 @@ function AnnouncementsTab({
 
       {query.isLoading && <Spinner size={24} />}
       {query.isError && (
-        <ErrorText>Não foi possível carregar os avisos.</ErrorText>
+        <ErrorText>
+          {formatError(query.error, 'Não foi possível carregar os avisos')}
+        </ErrorText>
       )}
       <div style={{ display: 'grid', gap: '0.5rem' }}>
         {(query.data ?? []).map((a) => (
@@ -723,8 +748,8 @@ function MissionsTab({
       setTitle('');
       setDescription('');
       setDeadline('');
-    } catch {
-      toast.error('Não foi possível criar a missão.');
+    } catch (err) {
+      toast.error(formatError(err, 'Não foi possível criar a missão'));
     }
   }
 
@@ -800,7 +825,9 @@ function MissionsTab({
 
       {query.isLoading && <Spinner size={24} />}
       {query.isError && (
-        <ErrorText>Não foi possível carregar as missões.</ErrorText>
+        <ErrorText>
+          {formatError(query.error, 'Não foi possível carregar as missões')}
+        </ErrorText>
       )}
       <div style={{ display: 'grid', gap: '0.6rem' }}>
         {(query.data ?? []).map((m) => (
@@ -910,7 +937,11 @@ function RankingTab({ roomId }: { roomId: string }) {
 
   if (query.isLoading) return <Spinner size={24} />;
   if (query.isError)
-    return <ErrorText>Não foi possível carregar o ranking.</ErrorText>;
+    return (
+      <ErrorText>
+        {formatError(query.error, 'Não foi possível carregar o ranking')}
+      </ErrorText>
+    );
 
   const ranked = sortByXpDesc(
     (query.data ?? []).map((m) => ({
@@ -1007,7 +1038,11 @@ function PacTab({
 
   if (query.isLoading) return <Spinner size={24} />;
   if (query.isError)
-    return <ErrorText>Não foi possível carregar o PAC.</ErrorText>;
+    return (
+      <ErrorText>
+        {formatError(query.error, 'Não foi possível carregar o PAC')}
+      </ErrorText>
+    );
 
   const members = query.data ?? [];
 
@@ -1038,8 +1073,10 @@ function PacTab({
                   e.target.value as PacVisibility,
                 );
                 toast.success('Visibilidade atualizada.');
-              } catch {
-                toast.error('Não foi possível atualizar.');
+              } catch (err) {
+                toast.error(
+                  formatError(err, 'Não foi possível atualizar a visibilidade'),
+                );
               }
             }}
           />

@@ -1,0 +1,7 @@
+{
+  "task_id": "task-course-editing-ui-and-errors",
+  "task_description": "Three asks from the user instruction (pt-BR): (1) add the UI needed to enable EDITING courses — make the dormant 0019 draft/published edit-gating actually reachable (edit route + load existing course tree into the editor + creator 'Editar' entry point); (2) improve error messages app-wide to be specific and debug-friendly instead of generic 'Não foi possível realizar...', via a shared error-formatting helper that surfaces the underlying Supabase/Error cause; (3) write a committed markdown doc of the manual DB-setup steps for THIS repo (apply migrations incl. 0017/0018/0019, `supabase gen types`, env vars) with an explicit sandbox-unverifiable note. Frontend + docs; expected to need NO new SQL migration. No live Supabase in sandbox (SQL/RLS/trigger behavior reviewed structurally only). All work on a new feature branch off main; orchestrator pushes and opens the PR.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-002", "FEAT-001", "FEAT-003"],
+  "blocked_reason": null
+}
