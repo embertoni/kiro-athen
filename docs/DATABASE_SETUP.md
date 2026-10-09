@@ -176,7 +176,9 @@ supabase gen types typescript --local > src/types/database.ts
 - No Windows/PowerShell o operador `>` grava o arquivo em **UTF-16**; salve e
   faca commit de `src/types/database.ts` como **UTF-8** (por exemplo, reabrindo
   e salvando como UTF-8, ou convertendo com `iconv -f UTF-16LE -t UTF-8`). Um
-  arquivo UTF-16 e detectado erroneamente como outro tipo e quebra o build.
+  arquivo UTF-16 e detectado erroneamente como outro tipo e quebra o build. O
+  `.gitattributes` na raiz agora normaliza `src/types/database.ts` para UTF-8/LF
+  no commit, entao uma regeneracao no Windows e corrigida automaticamente.
 - Para colunas de view com todas as colunas anulaveis (ex.: a view
   `global_ranking`), faca a coalescencia dos nulls na borda de mapeamento da
   aplicacao (ex.: `mapGlobalRankRow` em `src/features/rankings/helpers.ts`),

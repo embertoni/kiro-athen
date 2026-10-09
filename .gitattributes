@@ -1,0 +1,5 @@
+# Normalize the generated Supabase types to UTF-8 + LF on commit. On Windows
+# PowerShell, `supabase gen types ... > src/types/database.ts` writes the file
+# as UTF-16LE/CRLF, which breaks the Vercel build. This guard corrects a Windows
+# regen automatically so the committed file is always UTF-8 with LF endings.
+src/types/database.ts text eol=lf working-tree-encoding=UTF-8
