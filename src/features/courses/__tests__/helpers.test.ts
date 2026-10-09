@@ -100,6 +100,24 @@ describe('buildCatalogPredicate', () => {
     expect(result.map((c) => c.slug)).toEqual(['calculo-i']);
   });
 
+  it('matches a term that occurs ONLY in the creator name', () => {
+    // "souza" is not part of any title/slug/description/category/tag, so a hit
+    // can only come from the creator name. Mirrors the server creator-name
+    // search refinement.
+    const result = filter({ search: 'souza' });
+    expect(result.map((c) => c.slug)).toEqual(['calculo-i']);
+  });
+
+  it('matches the creator name case- and accent-insensitively', () => {
+    // "LÍMA" differs from the stored "Lima" by case and an accent; both of
+    // Ana Lima's courses must match.
+    const result = filter({ search: 'LÍMA' });
+    expect(result.map((c) => c.slug).sort()).toEqual([
+      'historia-do-brasil',
+      'introducao-a-programacao',
+    ]);
+  });
+
   it('searches the slug', () => {
     const result = filter({ search: 'historia-do' });
     expect(result.map((c) => c.slug)).toEqual(['historia-do-brasil']);

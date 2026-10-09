@@ -109,7 +109,7 @@ export function GlobalRankingPage() {
                       color: 'var(--color-text-muted)',
                     }}
                   >
-                    Nível L{row.level}
+                    Nível {row.level}
                   </div>
                 </div>
               </li>

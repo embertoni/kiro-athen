@@ -187,10 +187,18 @@ export function useRoomDetail(
   });
 }
 
-/** List members. `onlyActive` filters to the active ranking roster. */
-export function useRoomMembers(roomId: string | undefined, onlyActive = false) {
+/**
+ * List members. `onlyActive` filters to the active ranking roster. `enabled`
+ * lets callers gate the query (e.g. skip fetching when the ranking is hidden);
+ * it still requires a `roomId` to run.
+ */
+export function useRoomMembers(
+  roomId: string | undefined,
+  onlyActive = false,
+  enabled = true,
+) {
   return useQuery<RoomMemberView[]>({
-    enabled: !!roomId,
+    enabled: !!roomId && enabled,
     queryKey: [...roomKeys.members(roomId ?? ''), onlyActive],
     queryFn: async () => {
       let query = supabase

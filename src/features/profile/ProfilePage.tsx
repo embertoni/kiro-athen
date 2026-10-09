@@ -9,7 +9,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
@@ -31,6 +31,7 @@ const BANNER_GRADIENT =
 
 export function ProfilePage() {
   const { username } = useParams();
+  const navigate = useNavigate();
   const { session, refreshProfile } = useAuth();
   const viewerId = session?.user?.id;
   const query = useProfile(username, viewerId);
@@ -52,6 +53,7 @@ export function ProfilePage() {
 
   const view = query.data;
   const p = view.profile;
+  const featuredMedals = view.medals.filter((m) => m.award.featured);
   const banner = p.banner_url
     ? { backgroundImage: `url(${p.banner_url})`, backgroundSize: 'cover' }
     : { background: BANNER_GRADIENT };
@@ -135,25 +137,70 @@ export function ProfilePage() {
               {p.bio}
             </p>
           )}
+
+          {/* Level / XP / streak inline, inside the identity block */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '1.25rem',
+              flexWrap: 'wrap',
+              marginTop: '0.9rem',
+            }}
+          >
+            <InlineStat label="Nível" value={p.level} />
+            <InlineStat
+              label="XP"
+              value={p.xp_global.toLocaleString('pt-BR')}
+            />
+            <InlineStat label="Sequência" value={`${p.streak_count} 🔥`} />
+          </div>
+
+          {/* Cursos / Amigos as clickable controls */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.6rem',
+              flexWrap: 'wrap',
+              marginTop: '0.9rem',
+            }}
+          >
+            <CountButton
+              label="Cursos"
+              value={view.enrolledCount}
+              ariaLabel={`Cursos: ${view.enrolledCount}. Ir para o catálogo`}
+              onClick={() => navigate('/catalog')}
+            />
+            <CountButton
+              label="Amigos"
+              value={view.friendsCount}
+              ariaLabel={`Amigos: ${view.friendsCount}. Ir para amigos`}
+              onClick={() => navigate('/friends')}
+            />
+          </div>
+
+          {/* Featured medals pinned into the identity block */}
+          {featuredMedals.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                gap: '0.6rem',
+                flexWrap: 'wrap',
+                marginTop: '0.9rem',
+              }}
+            >
+              {featuredMedals.map((m) => (
+                <MedalChip
+                  key={`featured-${m.medal.code}`}
+                  medal={m}
+                  highlight
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Stats */}
-      <section
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(7rem, 1fr))',
-          gap: '0.75rem',
-        }}
-      >
-        <Stat label="Nível" value={p.level} />
-        <Stat label="XP" value={p.xp_global} />
-        <Stat label="Sequência" value={`${p.streak_count} 🔥`} />
-        <Stat label="Cursos" value={view.enrolledCount} />
-        <Stat label="Amigos" value={view.friendsCount} />
-      </section>
-
-      {/* Featured medals then all medals */}
+      {/* All medals */}
       <MedalsShowcase medals={view.medals} />
 
       {editOpen && view.isOwner && (
@@ -183,37 +230,63 @@ export function ProfilePage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function InlineStat({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) {
   return (
-    <div
-      style={{
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-md)',
-        padding: '0.75rem',
-        background: 'var(--color-surface)',
-        textAlign: 'center',
-      }}
-    >
-      <div style={{ fontSize: '1.3rem', fontWeight: 700 }}>{value}</div>
-      <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{value}</div>
+      <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
         {label}
       </div>
     </div>
   );
 }
 
+function CountButton({
+  label,
+  value,
+  ariaLabel,
+  onClick,
+}: {
+  label: string;
+  value: string | number;
+  ariaLabel: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.4rem',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-md)',
+        padding: '0.5rem 0.85rem',
+        background: 'var(--color-surface)',
+        color: 'var(--brand-purple)',
+        font: 'inherit',
+        fontWeight: 600,
+        cursor: 'pointer',
+      }}
+    >
+      <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>{value}</span>
+      <span style={{ fontSize: '0.85rem' }}>{label}</span>
+    </button>
+  );
+}
+
 function MedalsShowcase({ medals }: { medals: ProfileMedal[] }) {
-  const featured = medals.filter((m) => m.award.featured);
   return (
     <section style={{ display: 'grid', gap: '0.75rem' }}>
       <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Medalhas</h2>
-      {featured.length > 0 && (
-        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-          {featured.map((m) => (
-            <MedalChip key={m.medal.code} medal={m} highlight />
-          ))}
-        </div>
-      )}
       {medals.length === 0 ? (
         <p style={{ color: 'var(--color-text-muted)' }}>
           Nenhuma medalha conquistada ainda.

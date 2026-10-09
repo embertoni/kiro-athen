@@ -105,11 +105,35 @@ export function useCatalog(filters: CatalogFilters, offset: number) {
         query = query.contains('tags', [filters.tag]);
       }
       if (filters.search.trim()) {
-        const term = `%${filters.search.trim()}%`;
-        // Search across title/slug/category/description server-side.
-        query = query.or(
-          `title.ilike.${term},slug.ilike.${term},category.ilike.${term},description.ilike.${term}`,
-        );
+        const raw = filters.search.trim();
+        const term = `%${raw}%`;
+        // Search across title/slug/category/description server-side. PostgREST
+        // cannot OR across an embedded table (creator:profiles) in a single
+        // .or(), so we first resolve creator ids whose display_name/username
+        // match the term and fold them into the same .or() via creator_id.in.
+        const { data: creatorRows, error: creatorError } = await supabase
+          .from('profiles')
+          .select('id')
+          // Cap the resolved creator ids to bound the IN(...) list we fold
+          // into the course .or(); 1000 keeps realistic creator-name searches
+          // from being silently truncated.
+          .or(`display_name.ilike.${term},username.ilike.${term}`)
+          .limit(1000);
+        if (creatorError) throw creatorError;
+        const creatorIds = (
+          (creatorRows ?? []) as unknown as { id: string }[]
+        ).map((r) => r.id);
+
+        const orParts = [
+          `title.ilike.${term}`,
+          `slug.ilike.${term}`,
+          `category.ilike.${term}`,
+          `description.ilike.${term}`,
+        ];
+        if (creatorIds.length > 0) {
+          orParts.push(`creator_id.in.(${creatorIds.join(',')})`);
+        }
+        query = query.or(orParts.join(','));
       }
 
       const { data, error, count } = await query

@@ -347,7 +347,10 @@ export function CatalogPage() {
                 status={c.status}
                 category={c.category}
                 tags={c.tags}
+                enrolled={enrolledCourseIds.has(c.id)}
                 onOpen={() => setOpenCourseId(c.id)}
+                onEnroll={() => handleEnroll(c.id)}
+                enrolling={enroll.isPending}
               />
             ))}
           </div>

@@ -1,0 +1,14 @@
+{
+  "task_id": "task-deps-build-compat",
+  "task_description": "On branch fix/deps-build-compat: regenerate package-lock.json via npm install on OPEN_INTERNET, get `npm run build` passing cleanly, run and capture typecheck/lint/test results, add a vercel.json SPA rewrite for React Router, and commit the lockfile + vercel.json + any fixes locally. Do not hand-edit src/types/database.ts or supabase/migrations/. Do not push.",
+  "status": "completed",
+  "feature_order": ["FEAT-001"],
+  "blocked_reason": null,
+  "verification": {
+    "build": "pass",
+    "tests": "pass",
+    "test_quality": "pass",
+    "docker_build": "skipped",
+    "summary": "npm run build exits 0 and produces dist/ (597kB JS chunk warning only, advisory). typecheck (tsc --noEmit) exits 0. lint (eslint .) exits 0 with 6 pre-existing warnings (0 errors) in untouched files. test (vitest run) 97/97 passing across 7 files. Changes were type-level/boundary fixes (NormalizeDatabase shim + consuming-code casts) plus lockfile and vercel.json; no new runtime logic requiring new tests was introduced, and existing 97 tests exercise the domain/helper logic. Protected files src/types/database.ts and supabase/migrations/ confirmed unchanged (git diff HEAD~1 empty). No Dockerfile in repo, so docker build skipped."
+  }
+}
