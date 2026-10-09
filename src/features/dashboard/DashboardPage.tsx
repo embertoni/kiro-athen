@@ -429,10 +429,11 @@ function RoomRanking({
   roomId: string;
   visibility: string;
 }) {
-  const membersQuery = useRoomMembers(roomId, true);
   // Only members may see the roster ranking; educator_only hides it from the
   // learner-facing dashboard panel.
   const rankingVisible = visibility === 'members' || visibility === 'public';
+  // Skip the roster fetch entirely when the ranking is hidden.
+  const membersQuery = useRoomMembers(roomId, true, rankingVisible);
 
   return (
     <div>

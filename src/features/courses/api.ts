@@ -114,8 +114,11 @@ export function useCatalog(filters: CatalogFilters, offset: number) {
         const { data: creatorRows, error: creatorError } = await supabase
           .from('profiles')
           .select('id')
+          // Cap the resolved creator ids to bound the IN(...) list we fold
+          // into the course .or(); 1000 keeps realistic creator-name searches
+          // from being silently truncated.
           .or(`display_name.ilike.${term},username.ilike.${term}`)
-          .limit(100);
+          .limit(1000);
         if (creatorError) throw creatorError;
         const creatorIds = (
           (creatorRows ?? []) as unknown as { id: string }[]
