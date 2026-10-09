@@ -34,7 +34,11 @@ import {
 } from '@/features/rooms/api';
 import { pacDisplay, sortByXpDesc } from '@/features/rooms/helpers';
 import { useCourseTrail, useDashboardOverview, type CourseTrail } from './api';
-import { deriveDailyMissions } from './helpers';
+import {
+  computeCenterScrollLeft,
+  deriveDailyMissions,
+  resolveModuleColor,
+} from './helpers';
 import { useHorizontalDragScroll } from './useHorizontalDragScroll';
 
 type Mode = 'cursos' | 'salas';
@@ -86,21 +90,58 @@ export function DashboardPage() {
 
   const trailQuery = useCourseTrail(userId, activeCourseId);
 
-  // Scroll/snap the trail to a module when the carousel selection changes.
+  // Scroll the trail so the focused module's node is centered horizontally.
   const trailRef = useRef<HTMLDivElement | null>(null);
   const dragHandlers = useHorizontalDragScroll(trailRef);
 
+  const trail = trailQuery.data;
+
+  // The "current" module drives the trail color: the focused module when set,
+  // else the first module of the trail.
+  const currentModule =
+    trail?.modules.find((m) => m.module.id === focusedModuleId) ??
+    trail?.modules[0];
+  const currentColor = resolveModuleColor(currentModule?.module.color);
+
+  // Selecting a module (carousel/selection) focuses it; the effect below does
+  // the centering so programmatic focus changes always re-center too.
   function scrollToModule(moduleId: string) {
     setFocusedModuleId(moduleId);
-    const el = trailRef.current?.querySelector<HTMLElement>(
-      `[data-module-id="${moduleId}"]`,
-    );
-    el?.scrollIntoView({
-      behavior: 'smooth',
-      inline: 'start',
-      block: 'nearest',
-    });
   }
+
+  // Default the focused module to the first module when the trail loads or
+  // changes, and recover if the focused module is no longer in the trail, so
+  // the trail always has a current color even before the user interacts.
+  useEffect(() => {
+    if (!trail || trail.modules.length === 0) return;
+    const stillPresent =
+      !!focusedModuleId &&
+      trail.modules.some((m) => m.module.id === focusedModuleId);
+    if (!stillPresent) {
+      setFocusedModuleId(trail.modules[0].module.id);
+    }
+  }, [trail, focusedModuleId]);
+
+  // Center the focused module's node horizontally inside the trail container
+  // whenever it changes programmatically (carousel, selection, or the default
+  // effect above). Uses the SAME scroll container the drag/wheel handlers
+  // mutate (trailRef), so it never conflicts with an active drag/wheel.
+  useEffect(() => {
+    if (!focusedModuleId) return;
+    const container = trailRef.current;
+    if (!container) return;
+    const node = container.querySelector<HTMLElement>(
+      `[data-module-id="${focusedModuleId}"]`,
+    );
+    if (!node) return;
+    const left = computeCenterScrollLeft({
+      containerWidth: container.clientWidth,
+      nodeOffsetLeft: node.offsetLeft,
+      nodeWidth: node.offsetWidth,
+      maxScrollLeft: container.scrollWidth - container.clientWidth,
+    });
+    container.scrollTo({ left, behavior: 'smooth' });
+  }, [focusedModuleId, trail]);
 
   if (overviewQuery.isLoading) {
     return (
@@ -114,7 +155,6 @@ export function DashboardPage() {
     return <ErrorText>Não foi possível carregar o painel.</ErrorText>;
   }
 
-  const trail = trailQuery.data;
   const dailyMissions = deriveDailyMissions({
     lastStudyDate:
       profile?.last_study_date ?? overview?.profile?.last_study_date,
@@ -144,6 +184,8 @@ export function DashboardPage() {
         {trail && (
           <TrailTrack
             trail={trail}
+            currentColor={currentColor}
+            focusedModuleId={focusedModuleId}
             onOpenLesson={(id) => navigate(`/lesson/${id}`)}
           />
         )}
@@ -267,7 +309,10 @@ export function DashboardPage() {
                   : 'dash__carousel-item'
               }
               style={{
-                borderColor: m.module.color ?? 'var(--brand-purple)',
+                borderColor: resolveModuleColor(m.module.color),
+                ...(focusedModuleId === m.module.id
+                  ? { background: resolveModuleColor(m.module.color) }
+                  : {}),
               }}
               onClick={() => scrollToModule(m.module.id)}
             >
@@ -291,62 +336,76 @@ export function DashboardPage() {
 
 function TrailTrack({
   trail,
+  currentColor,
+  focusedModuleId,
   onOpenLesson,
 }: {
   trail: CourseTrail;
+  currentColor: string;
+  focusedModuleId: string | null;
   onOpenLesson: (lessonId: string) => void;
 }) {
   return (
-    <div className="dash__track">
-      {trail.modules.map((m) => (
-        <div
-          key={m.module.id}
-          className="dash__module"
-          data-module-id={m.module.id}
-        >
+    <div
+      className="dash__track"
+      style={{ ['--trail-color' as string]: currentColor }}
+    >
+      {trail.modules.map((m) => {
+        const moduleColor = resolveModuleColor(m.module.color);
+        const isActive = focusedModuleId === m.module.id;
+        return (
           <div
-            className="dash__module-node"
-            style={{ background: m.module.color ?? 'var(--brand-purple)' }}
-            title={m.module.title}
+            key={m.module.id}
+            className={
+              isActive ? 'dash__module dash__module--active' : 'dash__module'
+            }
+            data-module-id={m.module.id}
+            style={{ ['--module-color' as string]: moduleColor }}
           >
-            {m.module.title}
+            <div
+              className="dash__module-node"
+              style={{ background: moduleColor }}
+              title={m.module.title}
+            >
+              {m.module.title}
+            </div>
+            <div className="dash__lessons">
+              {m.lessons.map((l) => {
+                const state = l.locked
+                  ? 'locked'
+                  : l.completed
+                    ? 'completed'
+                    : 'available';
+                return (
+                  <button
+                    key={l.lesson.id}
+                    type="button"
+                    disabled={l.locked}
+                    className={`dash__lesson dash__lesson--${state}`}
+                    aria-label={`${l.lesson.title} — ${
+                      l.locked
+                        ? 'bloqueada'
+                        : l.completed
+                          ? 'concluída'
+                          : 'disponível'
+                    }`}
+                    title={l.lesson.title}
+                    onClick={() => !l.locked && onOpenLesson(l.lesson.id)}
+                  >
+                    <span aria-hidden="true" className="dash__lesson-icon">
+                      {l.locked ? '🔒' : l.completed ? '✓' : '▶'}
+                    </span>
+                    <span className="dash__lesson-title">{l.lesson.title}</span>
+                  </button>
+                );
+              })}
+              {m.lessons.length === 0 && (
+                <span className="dash__empty">Sem aulas</span>
+              )}
+            </div>
           </div>
-          <div className="dash__lessons">
-            {m.lessons.map((l) => {
-              const state = l.locked
-                ? 'locked'
-                : l.completed
-                  ? 'completed'
-                  : 'available';
-              return (
-                <button
-                  key={l.lesson.id}
-                  type="button"
-                  disabled={l.locked}
-                  className={`dash__lesson dash__lesson--${state}`}
-                  aria-label={`${l.lesson.title} — ${
-                    l.locked
-                      ? 'bloqueada'
-                      : l.completed
-                        ? 'concluída'
-                        : 'disponível'
-                  }`}
-                  title={l.lesson.title}
-                  onClick={() => !l.locked && onOpenLesson(l.lesson.id)}
-                >
-                  <span aria-hidden="true" className="dash__lesson-icon">
-                    {l.locked ? '🔒' : l.completed ? '✓' : '▶'}
-                  </span>
-                  <span className="dash__lesson-title">{l.lesson.title}</span>
-                </button>
-              );
-            })}
-            {m.lessons.length === 0 && (
-              <span className="dash__empty">Sem aulas</span>
-            )}
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
