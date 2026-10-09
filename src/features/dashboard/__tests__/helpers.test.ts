@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildTrailGradient,
   computeCenterScrollLeft,
+  computeTrailPoints,
+  createSmoothPath,
   deriveDailyMissions,
+  hexToRgba,
   resolveModuleColor,
   toLocalDateKey,
 } from '../helpers';
@@ -161,5 +165,118 @@ describe('computeCenterScrollLeft', () => {
         maxScrollLeft: -200,
       }),
     ).toBe(0);
+  });
+});
+
+describe('hexToRgba', () => {
+  it('converts a 6-digit hex to rgba with the given alpha', () => {
+    expect(hexToRgba('#7b4bab', 0.5)).toBe('rgba(123, 75, 171, 0.5)');
+  });
+
+  it('expands a 3-digit shorthand hex', () => {
+    expect(hexToRgba('#abc', 1)).toBe('rgba(170, 187, 204, 1)');
+  });
+
+  it('tolerates a leading hash being absent', () => {
+    expect(hexToRgba('ff8800', 0.25)).toBe('rgba(255, 136, 0, 0.25)');
+  });
+
+  it('clamps alpha into the [0, 1] range', () => {
+    expect(hexToRgba('#000000', 5)).toBe('rgba(0, 0, 0, 1)');
+    expect(hexToRgba('#000000', -1)).toBe('rgba(0, 0, 0, 0)');
+  });
+
+  it('returns the input unchanged when it is not a hex color', () => {
+    expect(hexToRgba('var(--brand-purple)', 0.5)).toBe('var(--brand-purple)');
+  });
+});
+
+describe('buildTrailGradient', () => {
+  it('tints with a translucent rgba derived from a hex color', () => {
+    const bg = buildTrailGradient('#7b4bab');
+    expect(bg).toContain('rgba(123, 75, 171, 0.16)');
+    expect(bg).toContain('var(--color-bg)');
+  });
+
+  it('falls back to a brand tint when the color is a CSS var', () => {
+    const bg = buildTrailGradient('var(--brand-purple)');
+    expect(bg).toContain('rgba(123, 75, 171, 0.14)');
+    expect(bg).toContain('var(--color-bg)');
+  });
+});
+
+describe('computeTrailPoints', () => {
+  it('spaces points horizontally by step from startX', () => {
+    const points = computeTrailPoints({
+      count: 3,
+      step: 100,
+      startX: 50,
+      midY: 160,
+      amplitude: 0,
+    });
+    expect(points.map((p) => p.x)).toEqual([50, 150, 250]);
+    // amplitude 0 keeps every node on the mid line.
+    expect(points.every((p) => p.y === 160)).toBe(true);
+  });
+
+  it('oscillates y around midY by the amplitude', () => {
+    const points = computeTrailPoints({
+      count: 4,
+      step: 10,
+      startX: 0,
+      midY: 100,
+      amplitude: 50,
+    });
+    expect(points[0].y).toBeCloseTo(100); // sin(0) = 0
+    expect(points[1].y).toBeGreaterThan(100); // sin(0.72) > 0
+    for (const p of points) {
+      expect(p.y).toBeGreaterThanOrEqual(50);
+      expect(p.y).toBeLessThanOrEqual(150);
+    }
+  });
+
+  it('returns an empty array for zero nodes', () => {
+    expect(
+      computeTrailPoints({
+        count: 0,
+        step: 10,
+        startX: 0,
+        midY: 0,
+        amplitude: 0,
+      }),
+    ).toEqual([]);
+  });
+});
+
+describe('createSmoothPath', () => {
+  it('returns an empty string for fewer than two points', () => {
+    expect(createSmoothPath([])).toBe('');
+    expect(createSmoothPath([{ x: 1, y: 2 }])).toBe('');
+  });
+
+  it('starts with a move to the first point', () => {
+    const d = createSmoothPath([
+      { x: 0, y: 0 },
+      { x: 100, y: 50 },
+    ]);
+    expect(d.startsWith('M 0 0')).toBe(true);
+  });
+
+  it('uses midpoint-x control points for each cubic segment', () => {
+    const d = createSmoothPath([
+      { x: 0, y: 0 },
+      { x: 100, y: 50 },
+    ]);
+    // midX = 50; both control points share x = 50, endpoint is (100, 50).
+    expect(d).toBe('M 0 0 C 50 0, 50 50, 100 50');
+  });
+
+  it('emits one cubic segment per gap between points', () => {
+    const d = createSmoothPath([
+      { x: 0, y: 0 },
+      { x: 10, y: 0 },
+      { x: 20, y: 0 },
+    ]);
+    expect(d.match(/C/g)?.length).toBe(2);
   });
 });

@@ -397,13 +397,18 @@ button {
   overflow-x: auto;
   overflow-y: hidden;
   cursor: grab;
-  background:
-    radial-gradient(
-      circle at 20% 30%,
-      rgba(123, 75, 171, 0.08),
-      transparent 45%
-    ),
-    var(--color-bg);
+  /*
+   * Per-module gradient background. --trail-bg is set inline from the focused
+   * module color (buildTrailGradient); the transition fades the whole surface
+   * smoothly when the focused module changes rather than snapping. Falls back
+   * to a static brand tint before the first module resolves.
+   */
+  background-image: var(
+    --trail-bg,
+    radial-gradient(circle at 20% 30%, rgba(123, 75, 171, 0.08), transparent 45%)
+  );
+  background-color: var(--color-bg);
+  transition: background-image 0.6s ease;
 }
 
 .dash__trail:active {
@@ -411,6 +416,7 @@ button {
 }
 
 .dash__track {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 2.5rem;
@@ -419,11 +425,30 @@ button {
   width: max-content;
 }
 
+/*
+ * Decorative smooth SVG connector drawn behind the nodes. It spans the whole
+ * track and uses per-module gradient segments (set in the TSX). Purely visual:
+ * it never intercepts pointer events so dragging/clicking still hits the nodes.
+ */
+.dash__connector {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 70%;
+  pointer-events: none;
+  opacity: 0.4;
+  z-index: 0;
+}
+
 .dash__module {
   display: flex;
   align-items: center;
   gap: 1.5rem;
   position: relative;
+  z-index: 1;
 }
 
 /*
@@ -442,8 +467,13 @@ button {
   height: 4px;
   transform: translateY(-50%);
   border-radius: 999px;
-  background: var(--trail-color, var(--brand-purple));
+  /* Segment follows this module's own color, falling back to the current trail
+     color and finally --brand-purple, so the connector path reads per-module. */
+  background: var(--module-color, var(--trail-color, var(--brand-purple)));
   opacity: 0.55;
+  transition:
+    background 0.4s ease,
+    opacity 0.4s ease;
 }
 
 /* The first module has no preceding node, so no leading connector. */
@@ -466,6 +496,9 @@ button {
   border-radius: 999px;
   background: var(--module-color, var(--trail-color, var(--brand-purple)));
   opacity: 0.55;
+  transition:
+    background 0.4s ease,
+    opacity 0.4s ease;
 }
 
 .dash__module .dash__lessons:empty::before {
@@ -487,6 +520,16 @@ button {
   padding: 0.4rem;
   box-shadow: var(--shadow-md);
   overflow: hidden;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.3s ease;
+}
+
+/* The focused module's node lifts and glows with its own color. */
+.dash__module--active .dash__module-node {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 3px var(--color-surface),
+    0 0 22px var(--module-color, var(--brand-purple));
 }
 
 .dash__lessons {
@@ -511,11 +554,16 @@ button {
   gap: 0.15rem;
   padding: 0.3rem;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.1s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
 }
 
 .dash__lesson:hover:not(:disabled) {
-  transform: scale(1.06);
+  transform: scale(1.08);
+  box-shadow: var(--shadow-md);
 }
 
 .dash__lesson-icon {

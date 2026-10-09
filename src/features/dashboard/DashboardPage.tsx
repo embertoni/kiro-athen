@@ -21,11 +21,12 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
+import { Modal } from '@/components/ui/Modal';
 import { formatError } from '@/lib/errors';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { LessonRunner } from '@/features/lesson/LessonRunner';
 import { FriendsCourseRanking } from '@/features/rankings/FriendsCourseRanking';
 import {
   useAnnouncements,
@@ -36,7 +37,10 @@ import {
 import { pacDisplay, sortByXpDesc } from '@/features/rooms/helpers';
 import { useCourseTrail, useDashboardOverview, type CourseTrail } from './api';
 import {
+  buildTrailGradient,
   computeCenterScrollLeft,
+  computeTrailPoints,
+  createSmoothPath,
   deriveDailyMissions,
   resolveModuleColor,
 } from './helpers';
@@ -46,8 +50,11 @@ type Mode = 'cursos' | 'salas';
 
 export function DashboardPage() {
   const { session, profile } = useAuth();
-  const navigate = useNavigate();
   const userId = session?.user?.id;
+
+  // The lesson currently open in the pop-up modal (null = closed). Clicking an
+  // available lesson node opens it here instead of navigating to /lesson/:id.
+  const [openLessonId, setOpenLessonId] = useState<string | null>(null);
 
   const overviewQuery = useDashboardOverview(userId);
   const overview = overviewQuery.data;
@@ -103,6 +110,10 @@ export function DashboardPage() {
     trail?.modules.find((m) => m.module.id === focusedModuleId) ??
     trail?.modules[0];
   const currentColor = resolveModuleColor(currentModule?.module.color);
+  // Per-module gradient background for the trail layer. Driven by the focused
+  // module color and animated via a CSS transition on --trail-bg so switching
+  // modules fades smoothly rather than snapping.
+  const trailBackground = buildTrailGradient(currentColor);
 
   // Selecting a module (carousel/selection) focuses it; the effect below does
   // the centering so programmatic focus changes always re-center too.
@@ -188,6 +199,10 @@ export function DashboardPage() {
         {...dragHandlers}
         role="group"
         aria-label="Trilha de aulas"
+        style={{
+          ['--trail-color' as string]: currentColor,
+          ['--trail-bg' as string]: trailBackground,
+        }}
       >
         {trailQuery.isLoading && (
           <div className="dash-center">
@@ -209,7 +224,7 @@ export function DashboardPage() {
             trail={trail}
             currentColor={currentColor}
             focusedModuleId={focusedModuleId}
-            onOpenLesson={(id) => navigate(`/lesson/${id}`)}
+            onOpenLesson={(id) => setOpenLessonId(id)}
           />
         )}
         {!activeCourseId && !trailQuery.isLoading && (
@@ -349,6 +364,26 @@ export function DashboardPage() {
       {mode === 'salas' && selectedRoomId && (
         <NoticeBoard roomId={selectedRoomId} />
       )}
+
+      {/* Lesson pop-up: opens over the dashboard instead of navigating away.
+          The runner finalizes via the server-authoritative RPC; on success
+          useFinalizeLesson invalidates the dashboard queries so the trail
+          behind the modal refetches (completed node + next unlock) with no
+          manual reload. Closing the modal reveals the already-updated trail. */}
+      <Modal
+        open={openLessonId !== null}
+        onClose={() => setOpenLessonId(null)}
+        title="Aula"
+        size="lg"
+      >
+        {openLessonId && (
+          <LessonRunner
+            lessonId={openLessonId}
+            roomId={mode === 'salas' ? (selectedRoomId ?? undefined) : undefined}
+            onDone={() => setOpenLessonId(null)}
+          />
+        )}
+      </Modal>
     </div>
   );
 }
@@ -373,6 +408,7 @@ function TrailTrack({
       className="dash__track"
       style={{ ['--trail-color' as string]: currentColor }}
     >
+      <TrailConnector trail={trail} />
       {trail.modules.map((m) => {
         const moduleColor = resolveModuleColor(m.module.color);
         const isActive = focusedModuleId === m.module.id;
@@ -430,6 +466,79 @@ function TrailTrack({
         );
       })}
     </div>
+  );
+}
+
+/**
+ * Decorative smooth SVG connector behind the trail nodes. It draws one flowing
+ * cubic-bezier path with per-module gradient segments (each segment fades from
+ * the current module color to the next, falling back to --brand-purple), giving
+ * the trail a continuous "river" that is smoother than the per-node CSS
+ * segments. Geometry comes from the pure, unit-tested helpers so the math stays
+ * DOM-free. Purely visual (pointer-events: none) so it never intercepts clicks.
+ */
+function TrailConnector({ trail }: { trail: CourseTrail }) {
+  const moduleColors = trail.modules.map((m) =>
+    resolveModuleColor(m.module.color),
+  );
+  const count = moduleColors.length;
+  if (count < 2) return null;
+
+  // Module nodes sit ~11.5rem apart in the flex track (node + gap + lessons).
+  // These are decorative coordinates in the SVG's own space; the viewBox scales
+  // them to the rendered track width, so exact px alignment is not required.
+  const STEP = 220;
+  const START_X = 70;
+  const MID_Y = 90;
+  const AMPLITUDE = 46;
+  const HEIGHT = MID_Y * 2;
+  const points = computeTrailPoints({
+    count,
+    step: STEP,
+    startX: START_X,
+    midY: MID_Y,
+    amplitude: AMPLITUDE,
+  });
+  const width = START_X * 2 + (count - 1) * STEP;
+
+  return (
+    <svg
+      className="dash__connector"
+      viewBox={`0 0 ${width} ${HEIGHT}`}
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <defs>
+        {points.slice(0, -1).map((p, i) => {
+          const next = points[i + 1];
+          return (
+            <linearGradient
+              key={`seg-grad-${i}`}
+              id={`dash-seg-${i}`}
+              gradientUnits="userSpaceOnUse"
+              x1={p.x}
+              y1={p.y}
+              x2={next.x}
+              y2={next.y}
+            >
+              <stop offset="0%" stopColor={moduleColors[i]} />
+              <stop offset="100%" stopColor={moduleColors[i + 1]} />
+            </linearGradient>
+          );
+        })}
+      </defs>
+      {points.slice(0, -1).map((p, i) => (
+        <path
+          key={`seg-${i}`}
+          d={createSmoothPath([p, points[i + 1]])}
+          fill="none"
+          stroke={`url(#dash-seg-${i})`}
+          strokeWidth={5}
+          strokeLinecap="round"
+        />
+      ))}
+    </svg>
   );
 }
 
