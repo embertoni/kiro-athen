@@ -1,7 +1,7 @@
 {
   "task_id": "task-layout-and-course-improvements",
   "task_description": "Implement 6 requested changes in the kiro-athen React+TS+Vite+Supabase app: (1) allow enrolling in a private course you created, (2) catalog search by creator name, (3) numeric user level instead of 'L1', (4) no XP for re-answering an already-correct question, (5) full layout overhaul (remove top bar; persistent left sidebar with fixed order + unread indicator + theme toggle + profile footer; Painel as home with a draggable Duolingo-style trail, module carousel, top-down panel, courses/rooms selector, notice board), (6) profile page rework (level/xp/streak inside identity block, clickable Cursos/Amigos nav buttons, featured medals pinned into the identity block). Backend changes (items 1 and 4) ship as NEW supabase migrations; src/types/database.ts is generated and must not be hand-edited. All work on a new feature branch off main; no push/PR.",
-  "status": "in_progress",
+  "status": "completed",
   "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004"],
   "blocked_reason": null,
   "verification": {
