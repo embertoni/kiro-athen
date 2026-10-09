@@ -6,6 +6,7 @@ import {
   EMPTY_FILTERS,
   hasActiveFilters,
   isExistingContentLocked,
+  nextModulePosition,
   slugify,
   type SearchableCourse,
 } from '../helpers';
@@ -236,5 +237,40 @@ describe('canEditExistingContent', () => {
     expect(
       canEditExistingContent({ isExistingCourse: false, status: 'draft' }),
     ).toBe(true);
+  });
+});
+
+describe('nextModulePosition', () => {
+  it('starts at 0 when there are no retained modules', () => {
+    // Brand-new course or a draft rebuilt from scratch: dense 0..n sequence.
+    expect(nextModulePosition([])).toBe(0);
+  });
+
+  it('appends after the max retained position (contiguous)', () => {
+    // Three retained modules at 0,1,2 -> the next new module goes to 3, which
+    // does NOT collide with any retained position.
+    expect(nextModulePosition([0, 1, 2])).toBe(3);
+  });
+
+  it('derives from the MAX, not the count, when positions have gaps', () => {
+    // A published course whose stored positions are sparse (e.g. after an
+    // earlier edit) must still get a non-colliding position: count would be 3
+    // and collide with the retained position 5, so max+1 = 6 is required.
+    expect(nextModulePosition([0, 2, 5])).toBe(6);
+  });
+
+  it('does not collide across successive appends (caller increments)', () => {
+    // The caller appends the just-assigned position and asks again; each new
+    // module gets a distinct, non-colliding slot.
+    const existing = [0, 1, 2];
+    const first = nextModulePosition(existing);
+    const second = nextModulePosition([...existing, first]);
+    expect(first).toBe(3);
+    expect(second).toBe(4);
+    expect(new Set([...existing, first, second]).size).toBe(5);
+  });
+
+  it('handles a single retained module', () => {
+    expect(nextModulePosition([7])).toBe(8);
   });
 });

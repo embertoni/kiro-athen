@@ -27,7 +27,11 @@ import type {
   ReviewRow,
 } from '@/types/database';
 import type { Json } from '@/types/database';
-import { averageRating, type CatalogFilters } from './helpers';
+import {
+  averageRating,
+  nextModulePosition,
+  type CatalogFilters,
+} from './helpers';
 
 // ---------------------------------------------------------------------------
 // Query keys
@@ -401,6 +405,14 @@ export interface CourseDraft {
  * runs the replace path, because the destructive step is gated on the EXISTING
  * (pre-save) status, not the target one.
  *
+ * UNPUBLISH IS OUT OF SCOPE. The only edit surface today is the create flow,
+ * which never unpublishes (published -> draft). If a future flow unpublishes a
+ * course the RLS (seeing status now 'draft') would re-permit a full rebuild,
+ * but this function, gating on the PRE-save status, would still skip the
+ * destructive replace. That asymmetry is deliberate and safe (it never issues
+ * writes RLS would reject); it must be revisited when an unpublish/edit entry
+ * point is actually built. See FEAT-003 findings.
+ *
  * The `status` on the draft controls draft vs published.
  */
 export async function saveCourseTree(
@@ -472,7 +484,26 @@ export async function saveCourseTree(
     if (delError) throw delError;
   }
 
-  for (const [mIndex, moduleDraft] of draft.modules.entries()) {
+  // Running position for the NEXT inserted module. For a destructive rebuild
+  // (new course or draft edit) positions are a dense 0..n sequence. For a
+  // published-course append we start AFTER the retained modules' stored
+  // positions so new modules never collide with pre-existing ones (there is no
+  // unique (course_id, position) constraint, so a collision would silently
+  // corrupt trail ordering instead of erroring).
+  let nextPosition = 0;
+  if (!allowReplaceChildren) {
+    const { data: existingModules, error: existingModulesError } =
+      await supabase
+        .from('modules')
+        .select('position')
+        .eq('course_id', courseId);
+    if (existingModulesError) throw existingModulesError;
+    nextPosition = nextModulePosition(
+      (existingModules ?? []).map((m) => m.position),
+    );
+  }
+
+  for (const moduleDraft of draft.modules) {
     // For a published course (no destructive replace) skip modules that already
     // exist; only brand-new modules (without an id) are inserted.
     if (!allowReplaceChildren && moduleDraft.id) continue;
@@ -483,12 +514,13 @@ export async function saveCourseTree(
         course_id: courseId,
         title: moduleDraft.title,
         description: moduleDraft.description || null,
-        position: mIndex,
+        position: nextPosition,
         color: moduleDraft.color,
       })
       .select('id')
       .single();
     if (moduleError) throw moduleError;
+    nextPosition += 1;
 
     for (const [lIndex, lessonDraft] of moduleDraft.lessons.entries()) {
       const { data: lessonRow, error: lessonError } = await supabase

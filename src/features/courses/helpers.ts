@@ -179,3 +179,28 @@ export function isExistingContentLocked(state: EditableCourseState): boolean {
 export function canEditExistingContent(state: EditableCourseState): boolean {
   return !isExistingContentLocked(state);
 }
+
+// ---------------------------------------------------------------------------
+// Position numbering for appended modules
+// ---------------------------------------------------------------------------
+
+/**
+ * Compute the next free `position` for a module being appended to a course,
+ * given the positions of the modules that are RETAINED (not rebuilt).
+ *
+ * When editing a published course, pre-existing modules keep their stored
+ * positions and are never renumbered; brand-new modules are only inserted. If
+ * new modules were numbered by their index in the full draft list they could
+ * collide with a retained module's stored position (there is no unique
+ * constraint on (course_id, position), so the insert would silently corrupt
+ * ordering). This derives the next position from the retained set instead:
+ * `max(existingPositions) + 1`, or 0 when there are none.
+ *
+ * Pure function. Callers increment per inserted module (e.g. by passing the
+ * growing list, or by adding a running offset) so successive appends do not
+ * collide with each other either.
+ */
+export function nextModulePosition(existingPositions: number[]): number {
+  if (existingPositions.length === 0) return 0;
+  return Math.max(...existingPositions) + 1;
+}

@@ -55,30 +55,43 @@ update public.courses
    and published_at is null;
 
 -- ---------------------------------------------------------------------------
--- 2) Trigger: stamp published_at when the course first becomes published.
+-- 2) Trigger: (re)stamp published_at on each publish, clear it on unpublish.
 --
--- Fires on INSERT (insert-as-published) and UPDATE (draft -> published). Leaves
--- published_at untouched once set, and does not clear it if the course is later
--- moved back to draft (so the original publication boundary is preserved).
+-- Fires on INSERT (insert-as-published) and UPDATE. The publication boundary is
+-- re-stamped every time status TRANSITIONS to published (draft -> published or
+-- insert-as-published) and cleared whenever status moves back to a non-published
+-- state. This keeps the "new vs existing" discriminator coherent across a
+-- published -> draft -> published cycle: content added during a draft-again
+-- window is created while published_at is NULL (so it is fully editable) and,
+-- once the course is re-published, published_at advances to that moment so the
+-- freshly-added content pre-dates the new boundary and becomes immutable just
+-- like any other pre-existing content. A re-stamp never moves the boundary
+-- backwards because it only fires on the draft -> published transition, not on
+-- an idempotent published -> published update.
 -- ---------------------------------------------------------------------------
 create or replace function public.set_course_published_at()
 returns trigger
 language plpgsql
 as $$
 begin
-  if new.status = 'published' and new.published_at is null then
-    -- First publication: on INSERT old is null; on UPDATE only stamp when the
-    -- row was not already published.
+  if new.status = 'published' then
+    -- (Re)stamp only on the transition INTO published: on INSERT old is null;
+    -- on UPDATE only when the row was not already published. An idempotent
+    -- published -> published update leaves the existing boundary intact.
     if tg_op = 'INSERT' or old.status is distinct from 'published' then
       new.published_at := now();
     end if;
+  else
+    -- Any non-published status (e.g. unpublish back to draft) clears the
+    -- boundary so a later re-publish re-stamps it from scratch.
+    new.published_at := null;
   end if;
   return new;
 end;
 $$;
 
 comment on function public.set_course_published_at() is
-  'BEFORE INSERT OR UPDATE on public.courses: stamps published_at := now() the first time status becomes published (insert-as-published or draft->published). Never overwrites an existing published_at.';
+  'BEFORE INSERT OR UPDATE on public.courses: stamps published_at := now() on each transition into published (insert-as-published or draft->published) and clears it whenever status is not published, so a published->draft->published cycle re-stamps the boundary coherently.';
 
 drop trigger if exists set_course_published_at on public.courses;
 create trigger set_course_published_at

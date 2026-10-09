@@ -126,6 +126,14 @@ export function DashboardPage() {
   // whenever it changes programmatically (carousel, selection, or the default
   // effect above). Uses the SAME scroll container the drag/wheel handlers
   // mutate (trailRef), so it never conflicts with an active drag/wheel.
+  //
+  // The node offset is measured relative to the scroll container via
+  // getBoundingClientRect + the container's current scrollLeft, rather than
+  // node.offsetLeft. offsetLeft is relative to the nearest POSITIONED ancestor,
+  // which only happens to be the scroll container today (`.dash__trail` is
+  // position:absolute while `.dash__track` is static); measuring from the
+  // container's own rect keeps centering correct regardless of which ancestor
+  // becomes the offset parent (e.g. if `.dash__track` is later positioned).
   useEffect(() => {
     if (!focusedModuleId) return;
     const container = trailRef.current;
@@ -134,10 +142,15 @@ export function DashboardPage() {
       `[data-module-id="${focusedModuleId}"]`,
     );
     if (!node) return;
+    const containerRect = container.getBoundingClientRect();
+    const nodeRect = node.getBoundingClientRect();
+    // Node left edge in the container's scroll coordinate space.
+    const nodeOffsetLeft =
+      nodeRect.left - containerRect.left + container.scrollLeft;
     const left = computeCenterScrollLeft({
       containerWidth: container.clientWidth,
-      nodeOffsetLeft: node.offsetLeft,
-      nodeWidth: node.offsetWidth,
+      nodeOffsetLeft,
+      nodeWidth: nodeRect.width,
       maxScrollLeft: container.scrollWidth - container.clientWidth,
     });
     container.scrollTo({ left, behavior: 'smooth' });
