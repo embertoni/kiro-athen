@@ -56,6 +56,9 @@ export function DashboardPage() {
   // The lesson currently open in the pop-up modal (null = closed). Clicking an
   // available lesson node opens it here instead of navigating to /lesson/:id.
   const [openLessonId, setOpenLessonId] = useState<string | null>(null);
+  // The loaded lesson's title, surfaced by LessonRunner, used as the modal
+  // header. Null while the lesson is loading; the modal falls back to "Aula".
+  const [openLessonTitle, setOpenLessonTitle] = useState<string | null>(null);
 
   // The floating notebook overlay (NotebookOverlay) toggled by the dashboard
   // button below. It is an ADDITIONAL surface: the /notebook full page and the
@@ -117,9 +120,14 @@ export function DashboardPage() {
     trail?.modules.find((m) => m.module.id === focusedModuleId) ??
     trail?.modules[0];
   const currentColor = resolveModuleColor(currentModule?.module.color);
-  // Per-module gradient background for the trail layer. Driven by the focused
-  // module color and animated via a CSS transition on --trail-bg so switching
-  // modules fades smoothly rather than snapping.
+  const currentModuleId = currentModule?.module.id ?? null;
+  // Per-module gradient tint for the trail layer. CSS cannot interpolate
+  // between two radial-gradient images, so instead of transitioning a single
+  // background-image we paint the gradient on a dedicated, absolutely
+  // positioned tint layer (.dash__trail-tint) that is KEYED by the focused
+  // module id. On a module switch React mounts a fresh tint layer which fades
+  // its opacity in over the previous one (@keyframes dash-trail-fade), so the
+  // color change genuinely cross-fades rather than snapping.
   const trailBackground = buildTrailGradient(currentColor);
 
   // Selecting a module (carousel/selection) focuses it; the effect below does
@@ -208,9 +216,20 @@ export function DashboardPage() {
         aria-label="Trilha de aulas"
         style={{
           ['--trail-color' as string]: currentColor,
-          ['--trail-bg' as string]: trailBackground,
         }}
       >
+        {/* Keyed gradient tint layer: a new layer mounts per focused module and
+            fades in over the previous one for a true cross-fade (see note where
+            trailBackground is built). Purely decorative, so it never captures
+            pointer events. */}
+        {currentModuleId && (
+          <div
+            key={currentModuleId}
+            className="dash__trail-tint"
+            aria-hidden="true"
+            style={{ ['--trail-bg' as string]: trailBackground }}
+          />
+        )}
         {trailQuery.isLoading && (
           <div className="dash-center">
             <Spinner size={28} />
@@ -400,15 +419,22 @@ export function DashboardPage() {
           manual reload. Closing the modal reveals the already-updated trail. */}
       <Modal
         open={openLessonId !== null}
-        onClose={() => setOpenLessonId(null)}
-        title="Aula"
+        onClose={() => {
+          setOpenLessonId(null);
+          setOpenLessonTitle(null);
+        }}
+        title={openLessonTitle ?? 'Aula'}
         size="lg"
       >
         {openLessonId && (
           <LessonRunner
             lessonId={openLessonId}
             roomId={mode === 'salas' ? (selectedRoomId ?? undefined) : undefined}
-            onDone={() => setOpenLessonId(null)}
+            onTitleChange={setOpenLessonTitle}
+            onDone={() => {
+              setOpenLessonId(null);
+              setOpenLessonTitle(null);
+            }}
           />
         )}
       </Modal>

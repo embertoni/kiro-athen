@@ -17,7 +17,7 @@
  * already wired via react-query invalidation in useFinalizeLesson).
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorText } from '@/components/ui/ErrorText';
@@ -60,6 +60,13 @@ export interface LessonRunnerProps {
   /** Fires after a successful finalize with the server totals. */
   onCompleted?: (result: AttemptResult) => void;
   /**
+   * Fires with the lesson title once the lesson query resolves (and with null
+   * while it is still loading / unavailable). A host that renders the runner
+   * inside a titled container (e.g. the dashboard Modal) can thread the real
+   * lesson title into its header without issuing a second data fetch.
+   */
+  onTitleChange?: (title: string | null) => void;
+  /**
    * Called when the user chooses to leave the finished lesson ("Concluir").
    * The route uses it to navigate; the modal uses it to close.
    */
@@ -70,6 +77,7 @@ export function LessonRunner({
   lessonId,
   roomId,
   onCompleted,
+  onTitleChange,
   onDone,
 }: LessonRunnerProps) {
   const toast = useToast();
@@ -88,6 +96,14 @@ export function LessonRunner({
     () => data?.questions ?? [],
     [data],
   );
+
+  // Surface the loaded lesson title to the host (e.g. the dashboard Modal
+  // header). Reported as null while the lesson is still loading so the host can
+  // fall back to a generic title until the real one is available.
+  const lessonTitle = data?.lesson.title ?? null;
+  useEffect(() => {
+    onTitleChange?.(lessonTitle);
+  }, [lessonTitle, onTitleChange]);
 
   const allAnswered = useMemo(
     () =>

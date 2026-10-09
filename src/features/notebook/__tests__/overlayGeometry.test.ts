@@ -115,4 +115,28 @@ describe('computeResize', () => {
     const { size } = resize('se', -1000, -1000);
     expect(size).toEqual({ width: MIN_WIDTH, height: MIN_HEIGHT });
   });
+
+  it('pins the west origin at the margin and keeps the fixed right edge put', () => {
+    // Drag west far enough that the origin would cross the left margin. The
+    // panel starts at left=100 (right edge = 500); dragging west by 200 would
+    // put the origin at -100, past the margin.
+    const { size, position } = resize('w', -200, 0);
+    expect(position.x).toBe(SCREEN_MARGIN);
+    // The right edge must stay fixed at startLeft + startWidth; the width is
+    // re-derived from it rather than left at the pre-clamp value.
+    expect(position.x + size.width).toBe(BASE.startLeft + BASE.startWidth);
+  });
+
+  it('pins the north origin at the margin and keeps the fixed bottom edge put', () => {
+    const { size, position } = resize('n', 0, -200);
+    expect(position.y).toBe(SCREEN_MARGIN);
+    expect(position.y + size.height).toBe(BASE.startTop + BASE.startHeight);
+  });
+
+  it('nw corner pins both origins at the margin, keeping both far edges put', () => {
+    const { size, position } = resize('nw', -200, -200);
+    expect(position).toEqual({ x: SCREEN_MARGIN, y: SCREEN_MARGIN });
+    expect(position.x + size.width).toBe(BASE.startLeft + BASE.startWidth);
+    expect(position.y + size.height).toBe(BASE.startTop + BASE.startHeight);
+  });
 });

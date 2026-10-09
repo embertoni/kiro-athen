@@ -398,17 +398,48 @@ button {
   overflow-y: hidden;
   cursor: grab;
   /*
-   * Per-module gradient background. --trail-bg is set inline from the focused
-   * module color (buildTrailGradient); the transition fades the whole surface
-   * smoothly when the focused module changes rather than snapping. Falls back
-   * to a static brand tint before the first module resolves.
+   * Base background. The per-module gradient tint is painted on a separate,
+   * keyed overlay layer (.dash__trail-tint) that cross-fades on module change,
+   * because CSS cannot interpolate between two radial-gradient images with a
+   * plain `transition: background-image`.
    */
-  background-image: var(
-    --trail-bg,
-    radial-gradient(circle at 20% 30%, rgba(123, 75, 171, 0.08), transparent 45%)
+  background-image: radial-gradient(
+    circle at 20% 30%,
+    rgba(123, 75, 171, 0.08),
+    transparent 45%
   );
   background-color: var(--color-bg);
-  transition: background-image 0.6s ease;
+}
+
+/*
+ * Per-module gradient tint. --trail-bg is set inline from the focused module
+ * color (buildTrailGradient). The element is KEYED by the module id in
+ * DashboardPage, so each module switch mounts a fresh layer that fades its
+ * opacity in over the previous one, producing a genuine cross-fade. It sits
+ * behind the trail nodes and never captures pointer events.
+ */
+.dash__trail-tint {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--trail-bg);
+  animation: dash-trail-fade 0.6s ease forwards;
+}
+
+@keyframes dash-trail-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash__trail-tint {
+    animation: none;
+  }
 }
 
 .dash__trail:active {

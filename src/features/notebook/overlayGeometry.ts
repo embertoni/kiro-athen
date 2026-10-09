@@ -98,10 +98,19 @@ export function computeResize(input: ResizeInput): {
     width = Math.max(minWidth, startWidth + deltaX);
   } else if (resizingWest) {
     width = Math.max(minWidth, startWidth - deltaX);
-    // The right edge stays fixed: new left = right - width. Clamping width at
-    // the minimum naturally stops the origin from drifting further.
+    // The right edge stays fixed: new left = right - width.
     const right = startLeft + startWidth;
-    x = Math.max(margin, right - width);
+    x = right - width;
+    // When the origin would cross the left margin, pin it to the margin and
+    // RE-DERIVE the width from the fixed right edge. Without re-deriving, a
+    // later on-screen clamp would shift the origin to the margin while leaving
+    // the already-computed width intact, dragging the fixed right edge a few px
+    // to the right. Clamping the width here keeps the right edge put (down to
+    // the minimum width, which then wins).
+    if (x < margin) {
+      x = margin;
+      width = Math.max(minWidth, right - margin);
+    }
   }
 
   // Height + top origin.
@@ -112,7 +121,13 @@ export function computeResize(input: ResizeInput): {
   } else if (resizingNorth) {
     height = Math.max(minHeight, startHeight - deltaY);
     const bottom = startTop + startHeight;
-    y = Math.max(margin, bottom - height);
+    y = bottom - height;
+    // Mirror of the west case: pin the top to the margin and re-derive the
+    // height from the fixed bottom edge so it does not drift.
+    if (y < margin) {
+      y = margin;
+      height = Math.max(minHeight, bottom - margin);
+    }
   }
 
   return { size: { width, height }, position: { x, y } };
