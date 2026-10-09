@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { deriveDailyMissions, toLocalDateKey } from '../helpers';
+import {
+  computeCenterScrollLeft,
+  deriveDailyMissions,
+  resolveModuleColor,
+  toLocalDateKey,
+} from '../helpers';
 
 const NOW = new Date(2024, 4, 10, 9, 0, 0); // 2024-05-10 local
 
@@ -83,5 +88,78 @@ describe('deriveDailyMissions', () => {
     );
     expect(missions).toHaveLength(2);
     expect(missions.every((m) => m.done === false)).toBe(true);
+  });
+});
+
+describe('resolveModuleColor', () => {
+  it('returns the module color when present', () => {
+    expect(resolveModuleColor('#ff8800')).toBe('#ff8800');
+  });
+
+  it('falls back to the brand color when null or undefined', () => {
+    expect(resolveModuleColor(null)).toBe('var(--brand-purple)');
+    expect(resolveModuleColor(undefined)).toBe('var(--brand-purple)');
+  });
+});
+
+describe('computeCenterScrollLeft', () => {
+  it('centers a node in the middle of the scrollable range', () => {
+    // Node spans [800, 900], center 850; container 400 wide => target 650.
+    expect(
+      computeCenterScrollLeft({
+        containerWidth: 400,
+        nodeOffsetLeft: 800,
+        nodeWidth: 100,
+        maxScrollLeft: 2000,
+      }),
+    ).toBe(650);
+  });
+
+  it('clamps to 0 for a node near the start', () => {
+    // Node center 50, container 400 => target -150, clamped to 0.
+    expect(
+      computeCenterScrollLeft({
+        containerWidth: 400,
+        nodeOffsetLeft: 0,
+        nodeWidth: 100,
+        maxScrollLeft: 2000,
+      }),
+    ).toBe(0);
+  });
+
+  it('clamps to maxScrollLeft for a node near the end', () => {
+    // Node center 2950, container 400 => target 2750, clamped to 2000.
+    expect(
+      computeCenterScrollLeft({
+        containerWidth: 400,
+        nodeOffsetLeft: 2900,
+        nodeWidth: 100,
+        maxScrollLeft: 2000,
+      }),
+    ).toBe(2000);
+  });
+
+  it('accounts for node width when centering', () => {
+    // Wider node: span [500, 700], center 600; container 200 => target 500.
+    expect(
+      computeCenterScrollLeft({
+        containerWidth: 200,
+        nodeOffsetLeft: 500,
+        nodeWidth: 200,
+        maxScrollLeft: 2000,
+      }),
+    ).toBe(500);
+  });
+
+  it('never returns a negative scroll when maxScrollLeft is negative', () => {
+    // Content fits the container (maxScrollLeft < 0) => always 0.
+    expect(
+      computeCenterScrollLeft({
+        containerWidth: 1000,
+        nodeOffsetLeft: 100,
+        nodeWidth: 100,
+        maxScrollLeft: -200,
+      }),
+    ).toBe(0);
   });
 });

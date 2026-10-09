@@ -27,7 +27,11 @@ import type {
   ReviewRow,
 } from '@/types/database';
 import type { Json } from '@/types/database';
-import { averageRating, type CatalogFilters } from './helpers';
+import {
+  averageRating,
+  nextModulePosition,
+  type CatalogFilters,
+} from './helpers';
 
 // ---------------------------------------------------------------------------
 // Query keys
@@ -391,10 +395,25 @@ export interface CourseDraft {
 /**
  * Persist a full course tree (course + modules + lessons + questions).
  *
- * This performs a replace-children save: on an existing course it deletes the
- * current modules (cascading to lessons/questions via FKs) and re-inserts from
- * the draft, which keeps the client editor simple and the DB consistent. The
- * `status` on the draft controls draft vs published.
+ * On a brand-new course it inserts everything. On an existing course it does a
+ * replace-children save (delete the current modules, cascading to
+ * lessons/questions via FKs, then re-insert from the draft) ONLY while the
+ * course is still a DRAFT. This mirrors the server authority in migration 0019:
+ * a published course's existing content is immutable, so blindly deleting and
+ * re-inserting its modules would be rejected by RLS (and is semantically
+ * wrong). Publishing a draft (status 'draft' at save time -> 'published') still
+ * runs the replace path, because the destructive step is gated on the EXISTING
+ * (pre-save) status, not the target one.
+ *
+ * UNPUBLISH IS OUT OF SCOPE. The only edit surface today is the create flow,
+ * which never unpublishes (published -> draft). If a future flow unpublishes a
+ * course the RLS (seeing status now 'draft') would re-permit a full rebuild,
+ * but this function, gating on the PRE-save status, would still skip the
+ * destructive replace. That asymmetry is deliberate and safe (it never issues
+ * writes RLS would reject); it must be revisited when an unpublish/edit entry
+ * point is actually built. See FEAT-003 findings.
+ *
+ * The `status` on the draft controls draft vs published.
  */
 export async function saveCourseTree(
   creatorId: string,
@@ -402,7 +421,21 @@ export async function saveCourseTree(
 ): Promise<CourseRow> {
   // 1) Upsert the course row itself.
   let courseId = draft.id;
+  // Whether the destructive replace-children path may run. Only a brand-new
+  // course or an existing DRAFT course may have its whole module tree rebuilt.
+  let allowReplaceChildren = true;
   if (courseId) {
+    // Read the EXISTING status before updating so a destructive rebuild is
+    // gated on the pre-save status (draft->published still rebuilds; editing an
+    // already-published course does not).
+    const { data: existing, error: existingError } = await supabase
+      .from('courses')
+      .select('status')
+      .eq('id', courseId)
+      .single();
+    if (existingError) throw existingError;
+    allowReplaceChildren = existing.status === 'draft';
+
     const { data, error } = await supabase
       .from('courses')
       .update({
@@ -439,25 +472,55 @@ export async function saveCourseTree(
   }
 
   // 2) Replace children: delete existing modules (cascade), then re-insert.
-  const { error: delError } = await supabase
-    .from('modules')
-    .delete()
-    .eq('course_id', courseId);
-  if (delError) throw delError;
+  // Skipped for an already-published course, whose existing content is
+  // immutable server-side (migration 0019). For such a course only brand-new
+  // modules (and their lessons/questions) are inserted below; nothing existing
+  // is deleted or altered.
+  if (allowReplaceChildren) {
+    const { error: delError } = await supabase
+      .from('modules')
+      .delete()
+      .eq('course_id', courseId);
+    if (delError) throw delError;
+  }
 
-  for (const [mIndex, moduleDraft] of draft.modules.entries()) {
+  // Running position for the NEXT inserted module. For a destructive rebuild
+  // (new course or draft edit) positions are a dense 0..n sequence. For a
+  // published-course append we start AFTER the retained modules' stored
+  // positions so new modules never collide with pre-existing ones (there is no
+  // unique (course_id, position) constraint, so a collision would silently
+  // corrupt trail ordering instead of erroring).
+  let nextPosition = 0;
+  if (!allowReplaceChildren) {
+    const { data: existingModules, error: existingModulesError } =
+      await supabase
+        .from('modules')
+        .select('position')
+        .eq('course_id', courseId);
+    if (existingModulesError) throw existingModulesError;
+    nextPosition = nextModulePosition(
+      (existingModules ?? []).map((m) => m.position),
+    );
+  }
+
+  for (const moduleDraft of draft.modules) {
+    // For a published course (no destructive replace) skip modules that already
+    // exist; only brand-new modules (without an id) are inserted.
+    if (!allowReplaceChildren && moduleDraft.id) continue;
+
     const { data: moduleRow, error: moduleError } = await supabase
       .from('modules')
       .insert({
         course_id: courseId,
         title: moduleDraft.title,
         description: moduleDraft.description || null,
-        position: mIndex,
+        position: nextPosition,
         color: moduleDraft.color,
       })
       .select('id')
       .single();
     if (moduleError) throw moduleError;
+    nextPosition += 1;
 
     for (const [lIndex, lessonDraft] of moduleDraft.lessons.entries()) {
       const { data: lessonRow, error: lessonError } = await supabase

@@ -423,6 +423,53 @@ button {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+  position: relative;
+}
+
+/*
+ * Connector segment: a horizontal line that visually links each module to the
+ * previous node in the trail. Colored with the current/selected module color
+ * (var(--trail-color), set on .dash__track), so the whole active path takes on
+ * the current module color. Falls back to --brand-purple when the module has no
+ * color (handled in TSX via resolveModuleColor).
+ */
+.dash__module::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 0.1rem);
+  width: 2.3rem;
+  height: 4px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: var(--trail-color, var(--brand-purple));
+  opacity: 0.55;
+}
+
+/* The first module has no preceding node, so no leading connector. */
+.dash__module:first-child::before {
+  display: none;
+}
+
+/* The focused module's own sub-section highlights with its own color. */
+.dash__module--active::before {
+  opacity: 1;
+}
+
+/* Connector between a module node and its own lessons uses the module color. */
+.dash__module .dash__lessons::before {
+  content: '';
+  align-self: center;
+  width: 1.5rem;
+  height: 4px;
+  margin-right: -0.5rem;
+  border-radius: 999px;
+  background: var(--module-color, var(--trail-color, var(--brand-purple)));
+  opacity: 0.55;
+}
+
+.dash__module .dash__lessons:empty::before {
+  display: none;
 }
 
 /* Module node = SQUARE */
@@ -682,6 +729,8 @@ button {
 }
 
 .dash__carousel-item--active {
+  /* Background is set inline to the focused module's color; this is the
+     fallback when no inline color is present. */
   background: var(--brand-purple);
   color: #fff;
 }

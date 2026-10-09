@@ -1,0 +1,26 @@
+{
+  "id": "FEAT-001",
+  "type": "chore",
+  "description": "Environment setup and green baseline. Confirm the toolchain works and the project builds/tests cleanly BEFORE making changes, and create the feature branch so all work is committed off main.",
+  "status": "completed",
+  "steps": [
+    "Ensure Node is on PATH: export PATH=\"/opt/toolchains/.nvm/versions/node/v22.23.3/bin:$PATH\" (node v22.23.3, npm 11.x).",
+    "From /projects/sandbox/kiro-athen, confirm dependencies are installed (node_modules present, package-lock.json committed). If anything is missing run `npm ci`.",
+    "Create and check out a NEW feature branch off main: `git checkout -b feat/trail-coloring-and-course-editability`. Do NOT commit on main.",
+    "Run the baseline: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`. Record the results. Note that there are 6 PRE-EXISTING eslint warnings in untouched files - capture the exact baseline count so later features do not add new ones."
+  ],
+  "acceptance_criteria": [
+    "A new branch feat/trail-coloring-and-course-editability (off main) is checked out; `git branch --show-current` confirms it and `git status` is clean.",
+    "`npm run build` succeeds on the untouched checkout.",
+    "`npm test` passes on the untouched checkout.",
+    "Baseline lint warning count is recorded (expected 6 pre-existing warnings)."
+  ],
+  "verification": [
+    "git branch --show-current  (prints feat/trail-coloring-and-course-editability)",
+    "npm run build  (exits 0)",
+    "npm test  (exits 0)",
+    "npm run lint  (record warning count baseline)"
+  ],
+  "blocked_reason": null,
+  "findings": "Environment: Node v22.23.3, npm 11.4.2 (after export PATH=\"/opt/toolchains/.nvm/versions/node/v22.23.3/bin:$PATH\"). Dependencies already installed; no npm ci needed. Branch feat/trail-coloring-and-course-editability created off main (base commit 8797e3a) and checked out; git branch --show-current confirms it. Baseline on untouched checkout (all exit 0): `npm run typecheck` (tsc --noEmit) PASS with 0 errors; `npm run lint` (eslint .) = 6 warnings, 0 errors (BASELINE - do not exceed). The exact 6 pre-existing warnings (all in untouched files): (1) src/components/ui/Toast.tsx:108:17 react-refresh/only-export-components; (2) src/features/auth/AuthProvider.tsx:233:17 react-refresh/only-export-components; (3) src/features/lesson/LessonView.tsx:69:9 react-hooks/exhaustive-deps; (4) src/features/lesson/questions/QuestionComponents.tsx:277:10 react-refresh/only-export-components; (5) src/features/notebook/NotebookPage.tsx:41:9 react-hooks/exhaustive-deps; (6) src/features/notebook/NotebookPage.tsx:51:9 react-hooks/exhaustive-deps. `npm test` (vitest run) = 9 files, 112 tests, all PASS. `npm run build` (tsc -b && vite build) SUCCEEDS (vite warns only about the >500kB chunk size, informational, pre-existing). Latest migration confirmed as 0018 -> next sequential prefix for FEAT work is 0019. Note (env constraint): no live Supabase in sandbox, so SQL migrations/RLS/triggers can only be reviewed structurally, not executed."
+}

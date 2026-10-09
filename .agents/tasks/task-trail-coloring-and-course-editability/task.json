@@ -1,0 +1,14 @@
+{
+  "task_id": "task-trail-coloring-and-course-editability",
+  "task_description": "Two user-facing requirements for kiro-athen (React 18 + TS + Vite SPA on Supabase): (1) Dashboard trail is colored by the current/selected module's color with a sane fallback, and the selected node is always centered horizontally in the viewport (on click and on carousel change) without breaking drag/wheel scroll. (2) Course editability gating: draft courses are fully editable and can be published; published courses may receive NEW modules only, while previously-existing content (modules/lessons/questions that existed at/before publication) is immutable (no UPDATE/DELETE, and no new lessons/questions under pre-existing modules). Enforced at the data layer via a new migration (RLS + trigger) and reflected in the edit UI.",
+  "status": "completed",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null,
+  "verification": {
+    "build": "pass",
+    "tests": "pass",
+    "test_quality": "pass",
+    "docker_build": "skipped",
+    "summary": "npm run typecheck exit 0; npm run lint exit 0 with exactly the 6 pre-existing baseline warnings (none in changed files); npm test 126 passed across 9 files (incl. new computeCenterScrollLeft/resolveModuleColor dashboard tests and isExistingContentLocked/canEditExistingContent courses tests); npm run build exit 0 (only the pre-existing >500kB chunk-size info warning). Test quality verified: the centering tests assert the real nodeOffsetLeft+nodeWidth/2-containerWidth/2 formula with start/end clamping and would fail if reverted; the editability tests exercise the real status/isExistingCourse gating logic. No Dockerfile in the repo, so docker build is not applicable (skipped). SQL migration 0019 could NOT be executed (no live Supabase in sandbox) and was validated by structural/logic review only; the user must run `supabase gen types` after merge because courses gained a published_at column (the client intentionally does not select it, so the TS build stays green)."
+  }
+}

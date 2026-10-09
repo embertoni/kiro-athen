@@ -14,7 +14,7 @@ import {
   type LessonDraft,
   type QuestionDraft,
 } from '../api';
-import { slugify } from '../helpers';
+import { slugify, isExistingContentLocked } from '../helpers';
 import {
   QUESTION_TYPE_LABELS,
   defaultXpFor,
@@ -81,6 +81,25 @@ export function CreateCoursePage() {
   const [modules, setModules] = useState<ModuleDraft[]>([emptyModule(0)]);
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Existing-course identity. The /create route never loads an existing course
+  // today (always a fresh draft), so these stay at their create-mode defaults.
+  // They exist so the edit affordances defensively respect an "existing
+  // published course" state if/when an edit entry point hydrates them, matching
+  // the server-side gating in migration 0019.
+  const [courseId] = useState<string | undefined>(undefined);
+  const [courseStatus] = useState<CourseStatus>('draft');
+
+  // When editing an existing PUBLISHED course, its already-persisted content is
+  // immutable: edit/delete affordances for pre-existing modules/lessons/
+  // questions are hidden, while adding brand-new modules stays available.
+  const contentLocked = isExistingContentLocked({
+    isExistingCourse: !!courseId,
+    status: courseStatus,
+  });
+
+  /** A module/lesson/question is pre-existing when it already has an id. */
+  const isPersisted = (entity: { id?: string }) => !!entity.id;
+
   const effectiveSlug = useMemo(
     () => (slugTouched ? slug : slugify(title)),
     [slug, slugTouched, title],
@@ -140,6 +159,7 @@ export function CreateCoursePage() {
       .map((t) => t.trim())
       .filter(Boolean);
     return {
+      id: courseId,
       title: title.trim(),
       slug: effectiveSlug,
       description: description.trim(),
@@ -281,256 +301,289 @@ export function CreateCoursePage() {
         </div>
       </section>
 
-      {modules.map((module, mi) => (
-        <section
-          key={mi}
-          style={{
-            ...card,
-            borderLeft: `4px solid ${module.color ?? '#5b2a86'}`,
-          }}
-        >
-          <div
+      {modules.map((module, mi) => {
+        // Pre-existing module of a published course: locked against edits.
+        const moduleLocked = contentLocked && isPersisted(module);
+        return (
+          <section
+            key={mi}
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
+              ...card,
+              borderLeft: `4px solid ${module.color ?? '#5b2a86'}`,
             }}
           >
-            <h2 style={{ margin: 0, fontSize: '1.05rem' }}>Módulo {mi + 1}</h2>
-            {modules.length > 1 && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  setModules((prev) => prev.filter((_, i) => i !== mi))
-                }
-              >
-                Remover módulo
-              </Button>
-            )}
-          </div>
-          <div
-            style={{ display: 'grid', gap: '0.75rem', marginTop: '0.75rem' }}
-          >
-            <Input
-              label="Título do módulo"
-              value={module.title}
-              onChange={(e) => updateModule(mi, { title: e.target.value })}
-            />
-            <Input
-              label="Descrição do módulo"
-              value={module.description}
-              onChange={(e) =>
-                updateModule(mi, { description: e.target.value })
-              }
-            />
-            <Input
-              label="Cor"
-              type="color"
-              value={module.color ?? '#5b2a86'}
-              onChange={(e) => updateModule(mi, { color: e.target.value })}
-              style={{ width: '4rem', height: '2.5rem', padding: '0.2rem' }}
-            />
-          </div>
-
-          {module.lessons.map((lesson, li) => (
             <div
-              key={li}
               style={{
-                border: '1px dashed var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                padding: '0.9rem',
-                marginTop: '0.75rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
               }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <strong>Aula {li + 1}</strong>
-                {module.lessons.length > 1 && (
+              <h2 style={{ margin: 0, fontSize: '1.05rem' }}>
+                Módulo {mi + 1}
+              </h2>
+              {modules.length > 1 &&
+                !(contentLocked && isPersisted(module)) && (
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() =>
-                      updateModule(mi, {
-                        lessons: module.lessons.filter((_, j) => j !== li),
-                      })
+                      setModules((prev) => prev.filter((_, i) => i !== mi))
                     }
                   >
-                    Remover aula
+                    Remover módulo
                   </Button>
                 )}
-              </div>
-              <div
-                style={{ display: 'grid', gap: '0.6rem', marginTop: '0.6rem' }}
-              >
-                <Input
-                  label="Título da aula"
-                  value={lesson.title}
-                  onChange={(e) =>
-                    updateLesson(mi, li, { title: e.target.value })
-                  }
-                />
-                <div>
-                  <label
-                    style={{
-                      fontSize: '0.85rem',
-                      fontWeight: 600,
-                      color: 'var(--color-text)',
-                    }}
-                  >
-                    Conteúdo (texto)
-                  </label>
-                  <textarea
-                    value={lesson.content}
-                    onChange={(e) =>
-                      updateLesson(mi, li, { content: e.target.value })
-                    }
-                    rows={3}
-                    style={{
-                      width: '100%',
-                      marginTop: '0.3rem',
-                      padding: '0.6rem 0.75rem',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-border)',
-                      fontFamily: 'inherit',
-                      fontSize: '0.95rem',
-                      resize: 'vertical',
-                    }}
-                  />
-                </div>
-              </div>
+            </div>
+            <div
+              style={{ display: 'grid', gap: '0.75rem', marginTop: '0.75rem' }}
+            >
+              <Input
+                label="Título do módulo"
+                value={module.title}
+                onChange={(e) => updateModule(mi, { title: e.target.value })}
+                disabled={moduleLocked}
+              />
+              <Input
+                label="Descrição do módulo"
+                value={module.description}
+                onChange={(e) =>
+                  updateModule(mi, { description: e.target.value })
+                }
+                disabled={moduleLocked}
+              />
+              <Input
+                label="Cor"
+                type="color"
+                value={module.color ?? '#5b2a86'}
+                onChange={(e) => updateModule(mi, { color: e.target.value })}
+                style={{ width: '4rem', height: '2.5rem', padding: '0.2rem' }}
+                disabled={moduleLocked}
+              />
+            </div>
 
-              {lesson.questions.map((question, qi) => (
+            {module.lessons.map((lesson, li) => (
+              <div
+                key={li}
+                style={{
+                  border: '1px dashed var(--color-border)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '0.9rem',
+                  marginTop: '0.75rem',
+                }}
+              >
                 <div
-                  key={qi}
                   style={{
-                    background: 'var(--color-bg)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '0.8rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <strong>Aula {li + 1}</strong>
+                  {module.lessons.length > 1 && !moduleLocked && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        updateModule(mi, {
+                          lessons: module.lessons.filter((_, j) => j !== li),
+                        })
+                      }
+                    >
+                      Remover aula
+                    </Button>
+                  )}
+                </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gap: '0.6rem',
                     marginTop: '0.6rem',
                   }}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                    }}
-                  >
-                    <strong style={{ fontSize: '0.9rem' }}>
-                      Questão {qi + 1}
-                    </strong>
-                    <span
+                  <Input
+                    label="Título da aula"
+                    value={lesson.title}
+                    onChange={(e) =>
+                      updateLesson(mi, li, { title: e.target.value })
+                    }
+                    disabled={moduleLocked}
+                  />
+                  <div>
+                    <label
                       style={{
-                        fontSize: '0.8rem',
-                        color: 'var(--color-text-muted)',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        color: 'var(--color-text)',
                       }}
                     >
-                      {question.xpValue} XP
-                    </span>
+                      Conteúdo (texto)
+                    </label>
+                    <textarea
+                      value={lesson.content}
+                      onChange={(e) =>
+                        updateLesson(mi, li, { content: e.target.value })
+                      }
+                      disabled={moduleLocked}
+                      rows={3}
+                      style={{
+                        width: '100%',
+                        marginTop: '0.3rem',
+                        padding: '0.6rem 0.75rem',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--color-border)',
+                        fontFamily: 'inherit',
+                        fontSize: '0.95rem',
+                        resize: 'vertical',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {lesson.questions.map((question, qi) => (
+                  <div
+                    key={qi}
+                    style={{
+                      background: 'var(--color-bg)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '0.8rem',
+                      marginTop: '0.6rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                      }}
+                    >
+                      <strong style={{ fontSize: '0.9rem' }}>
+                        Questão {qi + 1}
+                      </strong>
+                      <span
+                        style={{
+                          fontSize: '0.8rem',
+                          color: 'var(--color-text-muted)',
+                        }}
+                      >
+                        {question.xpValue} XP
+                      </span>
+                      {!moduleLocked && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            updateLesson(mi, li, {
+                              questions: lesson.questions.filter(
+                                (_, k) => k !== qi,
+                              ),
+                            })
+                          }
+                        >
+                          Remover
+                        </Button>
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gap: '0.6rem',
+                        marginTop: '0.5rem',
+                      }}
+                    >
+                      <Select
+                        label="Tipo"
+                        value={question.type}
+                        onChange={(e) => {
+                          const type = e.target.value as QuestionType;
+                          updateQuestion(mi, li, qi, {
+                            type,
+                            config: emptyConfigFor(type) as unknown as Json,
+                            xpValue: defaultXpFor(type),
+                          });
+                        }}
+                        options={QUESTION_TYPE_OPTIONS}
+                        disabled={moduleLocked}
+                      />
+                      <Input
+                        label="Enunciado"
+                        value={question.prompt}
+                        onChange={(e) =>
+                          updateQuestion(mi, li, qi, { prompt: e.target.value })
+                        }
+                        disabled={moduleLocked}
+                      />
+                      <div
+                        style={
+                          moduleLocked
+                            ? { pointerEvents: 'none', opacity: 0.6 }
+                            : undefined
+                        }
+                        aria-disabled={moduleLocked || undefined}
+                      >
+                        <QuestionConfigEditor
+                          type={question.type}
+                          config={question.config}
+                          onChange={(config) =>
+                            updateQuestion(mi, li, qi, { config })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {!moduleLocked && (
+                  <div style={{ marginTop: '0.6rem' }}>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       onClick={() =>
                         updateLesson(mi, li, {
-                          questions: lesson.questions.filter(
-                            (_, k) => k !== qi,
-                          ),
+                          questions: [
+                            ...lesson.questions,
+                            emptyQuestion(
+                              'multiple_choice',
+                              lesson.questions.length,
+                            ),
+                          ],
                         })
                       }
                     >
-                      Remover
+                      + Adicionar questão
                     </Button>
                   </div>
-                  <div
-                    style={{
-                      display: 'grid',
-                      gap: '0.6rem',
-                      marginTop: '0.5rem',
-                    }}
-                  >
-                    <Select
-                      label="Tipo"
-                      value={question.type}
-                      onChange={(e) => {
-                        const type = e.target.value as QuestionType;
-                        updateQuestion(mi, li, qi, {
-                          type,
-                          config: emptyConfigFor(type) as unknown as Json,
-                          xpValue: defaultXpFor(type),
-                        });
-                      }}
-                      options={QUESTION_TYPE_OPTIONS}
-                    />
-                    <Input
-                      label="Enunciado"
-                      value={question.prompt}
-                      onChange={(e) =>
-                        updateQuestion(mi, li, qi, { prompt: e.target.value })
-                      }
-                    />
-                    <QuestionConfigEditor
-                      type={question.type}
-                      config={question.config}
-                      onChange={(config) =>
-                        updateQuestion(mi, li, qi, { config })
-                      }
-                    />
-                  </div>
-                </div>
-              ))}
+                )}
+              </div>
+            ))}
 
-              <div style={{ marginTop: '0.6rem' }}>
+            {!moduleLocked && (
+              <div style={{ marginTop: '0.75rem' }}>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() =>
-                    updateLesson(mi, li, {
-                      questions: [
-                        ...lesson.questions,
-                        emptyQuestion(
-                          'multiple_choice',
-                          lesson.questions.length,
-                        ),
+                    updateModule(mi, {
+                      lessons: [
+                        ...module.lessons,
+                        emptyLesson(module.lessons.length),
                       ],
                     })
                   }
                 >
-                  + Adicionar questão
+                  + Adicionar aula
                 </Button>
               </div>
-            </div>
-          ))}
-
-          <div style={{ marginTop: '0.75rem' }}>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() =>
-                updateModule(mi, {
-                  lessons: [
-                    ...module.lessons,
-                    emptyLesson(module.lessons.length),
-                  ],
-                })
-              }
-            >
-              + Adicionar aula
-            </Button>
-          </div>
-        </section>
-      ))}
+            )}
+          </section>
+        );
+      })}
 
       <Button
         type="button"
