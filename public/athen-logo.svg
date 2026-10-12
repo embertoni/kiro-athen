@@ -1,15 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Athen logo">
   <title>Athen</title>
-  <!-- Purple crescent moon: outer disc minus an offset disc, wrapping the gold circle -->
+  <!-- Purple crescent moon: an outer disc with an offset disc carved out,
+       opening toward the lower-right and tapering as it wraps. -->
   <path
     fill="#5B2A86"
-    d="M32 2a30 30 0 1 0 0 60 30 30 0 0 1 0-60z"
+    fill-rule="evenodd"
+    d="M32 2a30 30 0 1 0 0 60 30 30 0 0 1 0-60zM41 10a24.5 24.5 0 1 1 0 44 29.5 29.5 0 0 0 0-44z"
   />
-  <!-- Gold/yellow filled circle nested in the crescent's opening -->
-  <circle cx="38" cy="32" r="17" fill="#FFC107" />
-  <!-- Small downward-pointing purple triangle inside the gold circle -->
-  <path
-    fill="#5B2A86"
-    d="M31 25h14l-7 12z"
-  />
+  <!-- Thin background-colored ring so the crescent inner edge and gold circle
+       read as distinct shapes. -->
+  <circle cx="41" cy="34" r="17.5" fill="#ffffff" />
+  <!-- Gold/yellow filled circle nested in the crescent's opening. -->
+  <circle cx="41" cy="34" r="15.5" fill="#FFC107" />
+  <!-- Small downward-pointing purple triangle in the upper-right quadrant. -->
+  <path fill="#5B2A86" d="M40 24h11l-5.5 10z" />
 </svg>

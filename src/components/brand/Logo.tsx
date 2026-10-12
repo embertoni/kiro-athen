@@ -7,9 +7,11 @@ interface LogoProps {
 }
 
 /**
- * Athen brand mark rendered inline as SVG: a purple crescent moon (#5B2A86)
- * wrapping a gold circle (#FFC107) that contains a small downward-pointing
- * purple triangle. Mirrors public/athen-logo.svg (the favicon).
+ * Athen brand mark rendered inline as SVG: a bold purple crescent moon
+ * (#5B2A86) opening toward the lower-right, a gold circle (#FFC107) nested in
+ * the opening with a thin background-colored gap so the two shapes read as
+ * distinct, and a small downward-pointing purple triangle in the upper-right
+ * quadrant. Kept visually identical to public/athen-logo.svg (the favicon).
  */
 export function Logo({ size = 32, title = 'Athen', className }: LogoProps) {
   const isDecorative = title === '';
@@ -24,9 +26,18 @@ export function Logo({ size = 32, title = 'Athen', className }: LogoProps) {
       aria-label={isDecorative ? undefined : title}
     >
       {!isDecorative && <title>{title}</title>}
-      <path fill="#5B2A86" d="M32 2a30 30 0 1 0 0 60 30 30 0 0 1 0-60z" />
-      <circle cx="38" cy="32" r="17" fill="#FFC107" />
-      <path fill="#5B2A86" d="M31 25h14l-7 12z" />
+      {/* Purple crescent: outer disc with an offset disc carved out. */}
+      <path
+        fill="#5B2A86"
+        fillRule="evenodd"
+        d="M32 2a30 30 0 1 0 0 60 30 30 0 0 1 0-60zM41 10a24.5 24.5 0 1 1 0 44 29.5 29.5 0 0 0 0-44z"
+      />
+      {/* Thin background-colored gap ring between crescent and gold circle. */}
+      <circle cx="41" cy="34" r="17.5" fill="#ffffff" />
+      {/* Gold/yellow circle nested in the crescent's opening. */}
+      <circle cx="41" cy="34" r="15.5" fill="#FFC107" />
+      {/* Small downward-pointing purple triangle (upper-right quadrant). */}
+      <path fill="#5B2A86" d="M40 24h11l-5.5 10z" />
     </svg>
   );
 }

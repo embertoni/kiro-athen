@@ -112,6 +112,7 @@ button {
 .app-shell__brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.25rem 0.5rem 0.75rem;
   text-decoration: none;
@@ -125,6 +126,7 @@ button {
   font-weight: 800;
   font-size: 1.15rem;
   color: var(--brand-purple);
+  text-transform: lowercase;
 }
 
 .app-shell__nav {
