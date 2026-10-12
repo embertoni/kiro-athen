@@ -1,0 +1,29 @@
+{
+  "id": "FEAT-005",
+  "type": "feat",
+  "description": "Sidebar brand de-duplication + lowercase wordmark (user_instruction change 4) AND corrected app icon everywhere (user_instruction change 5). Fix the sidebar so it shows a SINGLE lowercase 'athen' next to the icon, centered, with no duplicate 'Athen Athen'. Replace the app icon in every appearance (favicon file + inline Logo component) with a faithful corrected vector re-creation of the attached reference. HONESTY CONSTRAINT: the user's exact binary icon was NOT saved to disk and cannot be embedded; author a faithful hand-authored SVG and document in findings that it is a vector re-creation (the user can drop in their exact source to replace it for a pixel-exact match).",
+  "status": "pending",
+  "steps": [
+    "Change 4 — sidebar brand: In src/components/layout/AppShell.tsx, the brand NavLink currently renders <BrandMark size={30} /> (which includes its own 'Athen' wordmark) AND <span className=\"app-shell__brand-name\">Athen</span>, producing 'Athen  Athen'. Change it to render ONLY the logo mark plus a single lowercase wordmark: use <BrandMark size={30} hideWordmark /> (renders just the Logo, no wordmark) and change the span text to lowercase 'athen'. Do NOT alter BrandMark/Logo usage elsewhere (LandingPage, AuthCard, NotFoundPage keep 'Athen').",
+    "Change 4 — centering CSS: In src/styles/theme.css update .app-shell__brand (~line 112) to center the icon + wordmark horizontally (justify-content: center) while keeping the existing gap and padding. Keep .app-shell__brand-name styling (purple, bold) but ensure the single lowercase 'athen' reads cleanly; optionally add text-transform:lowercase to be safe. Verify in both light and dark themes (uses var(--brand-purple)).",
+    "Change 5 — corrected icon vector: Rewrite public/athen-logo.svg as a cleaner, better-proportioned mark matching the attached reference: a bold PURPLE crescent moon (var/brand purple #5B2A86) opening toward the lower-right; a large GOLD/YELLOW filled circle (#FFC107) nested in the opening with a THIN background-colored gap separating the crescent's inner edge from the gold circle so they read as distinct shapes; and a small DOWNWARD-POINTING purple triangle in the upper-right quadrant inside the gold circle. The crescent should be thick on the left and taper as it wraps. Keep viewBox 0 0 64 64, role=img, <title>Athen</title>, aria-label.",
+    "Change 5 — inline Logo: Update the inline SVG in src/components/brand/Logo.tsx to be VISUALLY IDENTICAL to the new public/athen-logo.svg (same paths/shapes/colors, same viewBox 0 0 64 64). KEEP the component API intact: size, title (default 'Athen'), className, and the decorative mode (title===''  -> aria-hidden, no <title>). Use the gap technique (either a thin background/white ring behind the gold circle, or by compositing the crescent as a purple disc minus an offset disc that also clears a ring around the gold circle) so the crescent and gold circle are visibly separated, matching the SVG file.",
+    "Verify index.html still references /athen-logo.svg (favicon) — no change needed there; the file content change propagates. Confirm BrandMark still renders Logo so the sidebar, landing hero, auth card all pick up the new mark.",
+    "Record in this feature's findings the exact honesty caveat text for the PR body: the icon is a hand-authored vector re-creation of the attached reference (not the user's exact binary, which was not available on disk), and the user can replace public/athen-logo.svg and the inline Logo paths with their exact source for a pixel-perfect match."
+  ],
+  "acceptance_criteria": [
+    "The sidebar brand shows exactly ONE wordmark, lowercase 'athen', next to the icon, horizontally centered; no duplicate 'Athen Athen'.",
+    "Other BrandMark/Logo callers (LandingPage, AuthCard, NotFoundPage) are unchanged and still show 'Athen'.",
+    "public/athen-logo.svg and src/components/brand/Logo.tsx both render the corrected mark (purple tapering crescent + gold circle with a visible thin gap + small downward purple triangle) and are visually identical to each other.",
+    "Logo component API (size/title/className/decorative) is preserved; favicon via index.html picks up the new file.",
+    "findings contains the icon honesty caveat for the PR body. No new eslint/TS warnings; build is clean."
+  ],
+  "verification": [
+    "npm run typecheck exits 0",
+    "npm run lint reports no new warnings",
+    "npm run build exits 0 and emits the updated favicon",
+    "grep confirms AppShell renders a single lowercase 'athen' span and BrandMark hideWordmark"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

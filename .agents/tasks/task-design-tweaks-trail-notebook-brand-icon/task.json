@@ -1,0 +1,7 @@
+{
+  "task_id": "task-design-tweaks-trail-notebook-brand-icon",
+  "task_description": "Five targeted frontend design tweaks to the Athen app: (1) dashboard trail drag pans without selecting text and hides the horizontal scrollbar while keeping drag+wheel pan; (2) lesson pop-up long text wraps/width-constrained with no horizontal scrollbar and a custom-styled vertical scrollbar; (3) notebooks renamable during and after creation via an edit button, reusing the existing useRenameNotebook mutation; (4) sidebar brand shows a single lowercase 'athen' next to the icon, centered (fix 'Athen Athen' duplication); (5) corrected app icon (faithful vector re-creation of the attached reference) wired in everywhere (favicon file + inline Logo). Frontend-only; no migrations/type changes; no Tailwind; CSS via theme.css.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004", "FEAT-005"],
+  "blocked_reason": null
+}

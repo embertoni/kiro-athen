@@ -1,0 +1,25 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Dashboard trail drag behavior (user_instruction change 1). Holding the left mouse button and dragging must pan the trail WITHOUT selecting node icons/texts, and the horizontal scrollbar must be invisible while drag AND mouse-wheel panning still work. Scope: src/features/dashboard/useHorizontalDragScroll.ts and the .dash__trail rules in src/styles/theme.css. Preserve the existing 4px click-vs-drag threshold so normal clicks on lesson nodes still open the lesson.",
+  "status": "pending",
+  "steps": [
+    "In src/styles/theme.css, in the .dash__trail rule (~line 393): add user-select: none plus -webkit-user-select: none; -ms-user-select: none; so dragging never text-selects the module titles/lesson icons. Keep overflow-x: auto and overflow-y: hidden (so wheel + programmatic scrollTo still pan) and keep cursor: grab / :active grabbing.",
+    "In the same .dash__trail rule, HIDE the horizontal scrollbar cross-browser WITHOUT removing scrollability: add scrollbar-width: none; (Firefox) and -ms-overflow-style: none; (old Edge). Then add a .dash__trail::-webkit-scrollbar { display: none; } rule (Chrome/Safari). Do NOT change overflow so wheel + drag still pan.",
+    "In src/features/dashboard/useHorizontalDragScroll.ts onPointerMove: once the drag passes the existing 4px threshold (Math.abs(dx) >= 4) and a drag is active, call e.preventDefault() before setting el.scrollLeft so a click-drag does not begin a native text selection. Keep the early return for dx < 4 so taps/clicks under the threshold still register as clicks on lesson nodes. Do not alter onPointerDown's intent (it must still allow interactive controls to receive clicks) and keep onWheel translating vertical wheel delta to horizontal scrollLeft.",
+    "Confirm the pointer handlers remain spread onto the .dash__trail element in DashboardPage.tsx (no change needed there unless required to make preventDefault effective)."
+  ],
+  "acceptance_criteria": [
+    ".dash__trail has user-select:none (with -webkit- prefix) so dragging does not select node text/icons.",
+    "The horizontal scrollbar is hidden via scrollbar-width:none, -ms-overflow-style:none, and ::-webkit-scrollbar{display:none}, while overflow-x stays auto so wheel + drag still pan the trail.",
+    "useHorizontalDragScroll still uses the 4px threshold so a click on a lesson node (small/no movement) still opens the lesson; a drag beyond threshold pans and suppresses selection via preventDefault.",
+    "No new TypeScript or eslint errors/warnings."
+  ],
+  "verification": [
+    "npm run typecheck exits 0",
+    "npm run lint reports no new warnings",
+    "npm run build exits 0"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

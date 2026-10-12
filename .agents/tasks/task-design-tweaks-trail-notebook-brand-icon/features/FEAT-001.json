@@ -1,0 +1,24 @@
+{
+  "id": "FEAT-001",
+  "type": "chore",
+  "description": "Establish a green baseline on a new feature branch off main. Confirm toolchain, install state, and that typecheck/lint/test/build all pass before any code changes.",
+  "status": "completed",
+  "steps": [
+    "Ensure node/npm on PATH: export PATH=\"/opt/toolchains/.nvm/versions/node/v22.23.3/bin:$PATH\".",
+    "From /projects/sandbox/kiro-athen, confirm current branch is main at commit 89ac0a8 and working tree clean (git status). Do NOT touch the parked stash@{0}.",
+    "Create and checkout a new feature branch: git checkout -b feat/design-tweaks-trail-notebook-brand-icon.",
+    "Run npm run typecheck, npm run lint, npm run test, npm run build and capture that all pass (build is the authoritative Vercel check). Note any PRE-EXISTING lint warnings so later features add none."
+  ],
+  "acceptance_criteria": [
+    "A new branch feat/design-tweaks-trail-notebook-brand-icon is checked out (NOT main).",
+    "npm run build completes successfully (tsc -b && vite build).",
+    "npm run typecheck, npm run lint, and npm run test all pass; any lint warnings are pre-existing and recorded."
+  ],
+  "verification": [
+    "git branch --show-current prints the new feature branch name",
+    "npm run build exits 0",
+    "npm run test exits 0"
+  ],
+  "blocked_reason": null,
+  "findings": "Baseline confirmed GREEN on new branch feat/design-tweaks-trail-notebook-brand-icon (off main @ 89ac0a8). node v22.23.3 / npm 11.4.2 via export PATH=\"/opt/toolchains/.nvm/versions/node/v22.23.3/bin:$PATH\". Results: npm run typecheck = clean (0 issues); npm run test = 208 passed across 12 files; npm run build = success (tsc -b && vite build, vite 7.3.7, dist built in ~8s, non-blocking chunk>500kB warning only). npm run lint = 0 errors, 5 PRE-EXISTING warnings that later features must NOT increase: (1) src/components/ui/Toast.tsx:108:17 react-refresh/only-export-components; (2) src/features/auth/AuthProvider.tsx:233:17 react-refresh/only-export-components; (3) src/features/lesson/questions/QuestionComponents.tsx:277:10 react-refresh/only-export-components; (4) src/features/notebook/NotebookPage.tsx:42:9 react-hooks/exhaustive-deps ('notebooks' logical expr); (5) src/features/notebook/NotebookPage.tsx:52:9 react-hooks/exhaustive-deps ('pages' logical expr). Note: QuestionComponents.tsx and NotebookPage.tsx are files later features will likely touch - preserve/avoid adding to these warnings. Parked git stash@{0} ('agents tooling') left untouched as instructed."
+}

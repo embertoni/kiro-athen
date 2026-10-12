@@ -1,0 +1,26 @@
+{
+  "id": "FEAT-004",
+  "type": "feat",
+  "description": "Notebook rename from the UI (user_instruction change 3). Let the user change a notebook's name both DURING creation and AFTER, via an edit button in the interface. REUSE the existing useRenameNotebook mutation in src/features/notebook/api.ts (do NOT add a migration or new backend). Add the edit affordance in BOTH notebook surfaces: the full page (src/features/notebook/NotebookPage.tsx) and the floating overlay (src/features/notebook/NotebookOverlay.tsx). Match existing UI primitives (Button/Input in src/components/ui).",
+  "status": "pending",
+  "steps": [
+    "In src/features/notebook/NotebookPage.tsx: import useRenameNotebook from ./api and instantiate it with userId. Next to each notebook name button in the 'Cadernos' list, add a pencil/'Editar' edit button. Clicking it switches that notebook's name into an inline editable state (use the shared Input component) with Save and Cancel actions; Save calls renameNotebook.mutateAsync({ id, title }) and on success the list refetches (the hook already invalidates notebookKeys.list). Trim empty -> fallback handled by the hook. Keep the existing select/delete behavior intact. Also allow setting the name at creation: when 'Novo caderno' is created, immediately put it into the inline-edit state (or prompt) so the user can name it right away.",
+    "In src/features/notebook/NotebookOverlay.tsx: import and use useRenameNotebook(userId). Add an edit (pencil) button in the notebook picker row (next to the <select> and the create/delete buttons) that, when the current notebook is selected, switches the title to an inline Input with Save/Cancel wired to renameNotebook. On create of a new notebook, enter the inline-edit state so the name can be set at creation. Preserve the existing drag/resize, page tabs, and editor behavior. Keep styling consistent with .nb-overlay* classes / existing Button component (do not introduce Tailwind).",
+    "Ensure new state (editing id, draft title) is local component state; invalidate/refetch via the existing mutation onSuccess (no new query keys). Keep accessibility: the edit button needs an aria-label (e.g. `Renomear caderno ${title}`), and the inline input needs an aria-label/label.",
+    "Confirm no edits are made to src/types/db.ts, src/types/database.ts, or supabase/migrations."
+  ],
+  "acceptance_criteria": [
+    "NotebookPage shows an edit button per notebook that opens an inline Input to rename, persisting via useRenameNotebook and refreshing the list on success.",
+    "NotebookOverlay shows an edit button for the selected notebook that renames it inline via the same hook.",
+    "A newly created notebook can be named immediately (name editable at creation time) in at least the page surface, via the same inline-edit flow.",
+    "No backend/schema/type changes; only src/features/notebook/*.tsx (and possibly a reused import) are touched. No new eslint/TS warnings."
+  ],
+  "verification": [
+    "npm run typecheck exits 0",
+    "npm run lint reports no new warnings",
+    "npm run build exits 0",
+    "git diff --name-only shows no changes under supabase/ or src/types/"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
