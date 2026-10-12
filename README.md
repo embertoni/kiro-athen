@@ -91,7 +91,7 @@ Constantes canonicas (ver `src/domain/constants.ts`, `src/domain/rules.ts` e
 - Nome da plataforma: **Athen**.
 - Logo: lua crescente roxa (`#5B2A86`) envolvendo um circulo dourado (`#FFC107`)
   com um pequeno triangulo roxo apontando para baixo. Arquivo:
-  `public/athen-logo.svg` (favicon via `index.html` + componentes `Logo` /
+  `public/athen-logo.png` (favicon via `index.html` + componentes `Logo` /
   `BrandMark`). Aparece na landing, nas telas de autenticacao e no cabecalho do
   app. Paleta roxo/dourado centralizada em variaveis CSS (`src/styles/theme.css`).
 - Responsividade: layout utilizavel em telas pequenas e grandes com CSS puro
@@ -120,7 +120,7 @@ real — veja "Limitacao de ambiente").
 | 12  | 4 medalhas MVP + streak (fuso America/Sao_Paulo, tolerancia 1 dia)                                            | ✅ / 🧪 | `grant_medals`, `touch_streak`, `src/features/gamification/*`      |
 | 13  | Amigos (pedido/aceite), notificacoes internas, lembrete de estudo                                             | ✅ / 🧪 | `src/features/friends/*`, `src/features/notifications/*`, `0016_*` |
 | 14  | Perfil (publico por username), caderno pessoal, configuracoes                                                 | ✅ / 🧪 | `src/features/profile                                              | notebook | settings/*` |
-| 15  | Marca Athen (logo + paleta) + responsividade                                                                  | ✅      | `public/athen-logo.svg`, `src/styles/theme.css`, `BrandMark`       |
+| 15  | Marca Athen (logo + paleta) + responsividade                                                                  | ✅      | `public/athen-logo.png`, `src/styles/theme.css`, `BrandMark`       |
 | 16  | Sem itens fora de escopo (Secao 17) e sem periodo semanal (Secao 8.6)                                         | ✅      | auditoria por grep (ver abaixo)                                    |
 
 ## Definition of Done (Secao 21, 15 pontos)
