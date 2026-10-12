@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildTrailGradient,
+  computeCarouselWindow,
   computeCenterScrollLeft,
+  computeModuleTrailPoints,
+  computeTrailPoints,
+  createSmoothPath,
   deriveDailyMissions,
+  hexToRgba,
+  nextModuleIndex,
   resolveModuleColor,
   toLocalDateKey,
 } from '../helpers';
@@ -161,5 +168,275 @@ describe('computeCenterScrollLeft', () => {
         maxScrollLeft: -200,
       }),
     ).toBe(0);
+  });
+});
+
+describe('hexToRgba', () => {
+  it('converts a 6-digit hex to rgba with the given alpha', () => {
+    expect(hexToRgba('#7b4bab', 0.5)).toBe('rgba(123, 75, 171, 0.5)');
+  });
+
+  it('expands a 3-digit shorthand hex', () => {
+    expect(hexToRgba('#abc', 1)).toBe('rgba(170, 187, 204, 1)');
+  });
+
+  it('tolerates a leading hash being absent', () => {
+    expect(hexToRgba('ff8800', 0.25)).toBe('rgba(255, 136, 0, 0.25)');
+  });
+
+  it('clamps alpha into the [0, 1] range', () => {
+    expect(hexToRgba('#000000', 5)).toBe('rgba(0, 0, 0, 1)');
+    expect(hexToRgba('#000000', -1)).toBe('rgba(0, 0, 0, 0)');
+  });
+
+  it('returns the input unchanged when it is not a hex color', () => {
+    expect(hexToRgba('var(--brand-purple)', 0.5)).toBe('var(--brand-purple)');
+  });
+});
+
+describe('buildTrailGradient', () => {
+  it('tints with a translucent rgba derived from a hex color', () => {
+    const bg = buildTrailGradient('#7b4bab');
+    expect(bg).toContain('rgba(123, 75, 171, 0.16)');
+    expect(bg).toContain('var(--color-bg)');
+  });
+
+  it('falls back to a brand tint when the color is a CSS var', () => {
+    const bg = buildTrailGradient('var(--brand-purple)');
+    expect(bg).toContain('rgba(123, 75, 171, 0.14)');
+    expect(bg).toContain('var(--color-bg)');
+  });
+});
+
+describe('computeTrailPoints', () => {
+  it('spaces points horizontally by step from startX', () => {
+    const points = computeTrailPoints({
+      count: 3,
+      step: 100,
+      startX: 50,
+      midY: 160,
+      amplitude: 0,
+    });
+    expect(points.map((p) => p.x)).toEqual([50, 150, 250]);
+    // amplitude 0 keeps every node on the mid line.
+    expect(points.every((p) => p.y === 160)).toBe(true);
+  });
+
+  it('oscillates y around midY by the amplitude', () => {
+    const points = computeTrailPoints({
+      count: 4,
+      step: 10,
+      startX: 0,
+      midY: 100,
+      amplitude: 50,
+    });
+    expect(points[0].y).toBeCloseTo(100); // sin(0) = 0
+    expect(points[1].y).toBeGreaterThan(100); // sin(0.72) > 0
+    for (const p of points) {
+      expect(p.y).toBeGreaterThanOrEqual(50);
+      expect(p.y).toBeLessThanOrEqual(150);
+    }
+  });
+
+  it('returns an empty array for zero nodes', () => {
+    expect(
+      computeTrailPoints({
+        count: 0,
+        step: 10,
+        startX: 0,
+        midY: 0,
+        amplitude: 0,
+      }),
+    ).toEqual([]);
+  });
+
+  it('uses explicit phases to override the per-node sine index', () => {
+    // Phases reset [0,1,0,1] so pairs of nodes share the same y even though x
+    // keeps advancing by step.
+    const points = computeTrailPoints({
+      count: 4,
+      step: 10,
+      startX: 0,
+      midY: 100,
+      amplitude: 50,
+      phases: [0, 1, 0, 1],
+    });
+    expect(points.map((p) => p.x)).toEqual([0, 10, 20, 30]);
+    expect(points[0].y).toBeCloseTo(points[2].y);
+    expect(points[1].y).toBeCloseTo(points[3].y);
+  });
+});
+
+describe('computeModuleTrailPoints', () => {
+  it('yields 1 + lessonCount nodes per module with x advancing by step', () => {
+    const { points, ranges } = computeModuleTrailPoints({
+      modules: [{ lessonCount: 2 }, { lessonCount: 1 }],
+      step: 100,
+      startX: 50,
+      midY: 160,
+      amplitude: 40,
+    });
+    // module A: 3 nodes, module B: 2 nodes => 5 points.
+    expect(points).toHaveLength(5);
+    expect(points.map((p) => p.x)).toEqual([50, 150, 250, 350, 450]);
+    expect(ranges).toEqual([
+      { start: 0, end: 2 },
+      { start: 3, end: 4 },
+    ]);
+  });
+
+  it('repeats the SAME wave pattern per module (phase resets at boundaries)', () => {
+    const { points, ranges } = computeModuleTrailPoints({
+      modules: [{ lessonCount: 2 }, { lessonCount: 2 }],
+      step: 100,
+      startX: 0,
+      midY: 160,
+      amplitude: 40,
+    });
+    // The first node of each module shares the same y (phase reset to 0), and
+    // likewise for the second and third nodes.
+    const a = ranges[0];
+    const b = ranges[1];
+    expect(points[a.start].y).toBeCloseTo(points[b.start].y);
+    expect(points[a.start + 1].y).toBeCloseTo(points[b.start + 1].y);
+    expect(points[a.start + 2].y).toBeCloseTo(points[b.start + 2].y);
+  });
+
+  it('oscillates y around midY within [midY-amp, midY+amp]', () => {
+    const { points } = computeModuleTrailPoints({
+      modules: [{ lessonCount: 3 }],
+      step: 50,
+      startX: 0,
+      midY: 170,
+      amplitude: 92,
+    });
+    // First node sits on the mid line (sin(0) = 0); later nodes vary.
+    expect(points[0].y).toBeCloseTo(170);
+    expect(points.some((p) => p.y !== 170)).toBe(true);
+    for (const p of points) {
+      expect(p.y).toBeGreaterThanOrEqual(170 - 92 - 0.001);
+      expect(p.y).toBeLessThanOrEqual(170 + 92 + 0.001);
+    }
+  });
+
+  it('handles a module with no lessons (single node)', () => {
+    const { points, ranges } = computeModuleTrailPoints({
+      modules: [{ lessonCount: 0 }],
+      step: 100,
+      startX: 10,
+      midY: 100,
+      amplitude: 20,
+    });
+    expect(points).toHaveLength(1);
+    expect(ranges).toEqual([{ start: 0, end: 0 }]);
+  });
+
+  it('returns empty layout for no modules', () => {
+    const layout = computeModuleTrailPoints({
+      modules: [],
+      step: 100,
+      startX: 0,
+      midY: 100,
+      amplitude: 20,
+    });
+    expect(layout.points).toEqual([]);
+    expect(layout.ranges).toEqual([]);
+  });
+});
+
+describe('computeCarouselWindow', () => {
+  it('returns [prev, current, next] in the middle of the list', () => {
+    expect(computeCarouselWindow({ moduleCount: 5, activeIndex: 2 })).toEqual([
+      1, 2, 3,
+    ]);
+  });
+
+  it('wraps around at the start (prev wraps to the last)', () => {
+    expect(computeCarouselWindow({ moduleCount: 4, activeIndex: 0 })).toEqual([
+      3, 0, 1,
+    ]);
+  });
+
+  it('wraps around at the end (next wraps to the first)', () => {
+    expect(computeCarouselWindow({ moduleCount: 4, activeIndex: 3 })).toEqual([
+      2, 3, 0,
+    ]);
+  });
+
+  it('returns a single slot for one module', () => {
+    expect(computeCarouselWindow({ moduleCount: 1, activeIndex: 0 })).toEqual([
+      0,
+    ]);
+  });
+
+  it('returns an empty window for zero modules', () => {
+    expect(computeCarouselWindow({ moduleCount: 0, activeIndex: 0 })).toEqual(
+      [],
+    );
+  });
+});
+
+describe('nextModuleIndex', () => {
+  it('moves forward by one', () => {
+    expect(
+      nextModuleIndex({ moduleCount: 5, activeIndex: 2, direction: 1 }),
+    ).toBe(3);
+  });
+
+  it('moves backward by one', () => {
+    expect(
+      nextModuleIndex({ moduleCount: 5, activeIndex: 2, direction: -1 }),
+    ).toBe(1);
+  });
+
+  it('wraps forward past the end to the first', () => {
+    expect(
+      nextModuleIndex({ moduleCount: 4, activeIndex: 3, direction: 1 }),
+    ).toBe(0);
+  });
+
+  it('wraps backward past the start to the last', () => {
+    expect(
+      nextModuleIndex({ moduleCount: 4, activeIndex: 0, direction: -1 }),
+    ).toBe(3);
+  });
+
+  it('returns 0 for an empty list without crashing', () => {
+    expect(
+      nextModuleIndex({ moduleCount: 0, activeIndex: 0, direction: 1 }),
+    ).toBe(0);
+  });
+});
+
+describe('createSmoothPath', () => {
+  it('returns an empty string for fewer than two points', () => {
+    expect(createSmoothPath([])).toBe('');
+    expect(createSmoothPath([{ x: 1, y: 2 }])).toBe('');
+  });
+
+  it('starts with a move to the first point', () => {
+    const d = createSmoothPath([
+      { x: 0, y: 0 },
+      { x: 100, y: 50 },
+    ]);
+    expect(d.startsWith('M 0 0')).toBe(true);
+  });
+
+  it('uses midpoint-x control points for each cubic segment', () => {
+    const d = createSmoothPath([
+      { x: 0, y: 0 },
+      { x: 100, y: 50 },
+    ]);
+    // midX = 50; both control points share x = 50, endpoint is (100, 50).
+    expect(d).toBe('M 0 0 C 50 0, 50 50, 100 50');
+  });
+
+  it('emits one cubic segment per gap between points', () => {
+    const d = createSmoothPath([
+      { x: 0, y: 0 },
+      { x: 10, y: 0 },
+      { x: 20, y: 0 },
+    ]);
+    expect(d.match(/C/g)?.length).toBe(2);
   });
 });

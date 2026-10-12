@@ -1,0 +1,29 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Make the notebook available as a DRAGGABLE and RESIZABLE floating overlay that sits on top of the page (reference interaction model: _ref-athen/codigo-base/src/components/notebook/CursoNotebook.tsx), reusing OUR existing notebook data/api hooks (src/features/notebook/api.ts) - do NOT rebuild the data layer and do NOT copy the reference's Portuguese table names or Tailwind classes. The user can drag the overlay around the screen and resize it from edges/corners. This feature depends on nothing in FEAT-001; it can be built independently of FEAT-002 but shares the dashboard surface, so build it after FEAT-002 to avoid merge churn in DashboardPage.tsx.",
+  "status": "pending",
+  "steps": [
+    "Create a new component (e.g. src/features/notebook/NotebookOverlay.tsx) that renders a floating, draggable + resizable notebook panel using pointer events, modeled on the INTERACTION of _ref-athen/codigo-base/src/components/notebook/CursoNotebook.tsx (reference only): fixed-position panel with position {x,y} and size {width,height} React state; a drag handle on the header via onPointerDown (window pointermove/pointerup listeners update position); resize handles on the 4 edges and 4 corners (8 total) via onPointerDown that update size (and position for n/w edges). Enforce sensible minimums (e.g. min width 240, min height 200) and keep the panel on-screen (clamp x/y >= a small margin). Use OUR styling: CSS custom properties / classes in src/styles/theme.css (add e.g. .nb-overlay, .nb-overlay__header, .nb-overlay__resize-* classes), NOT Tailwind, and match the app's purple/gold theme + Modal shadow/radius tokens (var(--radius-lg), var(--shadow-md), etc.).",
+    "Reuse OUR notebook data layer: the overlay must use the existing hooks from src/features/notebook/api.ts (useNotebooks, useNotebookPages, useCreateNotebook, useCreatePage, useSavePage, useDeletePage, useReorderPage, useDeleteNotebook) and OUR row types from @/types/db (NotebookRow, NotebookPageRow). Do NOT add a new data layer, do NOT reference the reference repo's repositories or Curso/Anotacoes/Notebook tables. The overlay should let the user pick a notebook + page, edit title/content, save, create and delete pages/notebooks - reusing the same operations NotebookPage.tsx uses (you may factor shared editor logic out of NotebookPage.tsx into a shared piece, or re-implement a compact editor in the overlay that calls the same hooks).",
+    "Surface the overlay with a floating toggle button (reference uses a fixed launcher button). Add a floating 'Caderno' toggle button on the dashboard (DashboardPage.tsx) that opens/closes the NotebookOverlay. The overlay sits above the dashboard content (z-index above the trail/overlay UI but it is a non-modal floating panel - aria-modal false - so the dashboard stays interactive, matching the reference's draggable-overlay behavior). Keep the existing /notebook full page and the sidebar 'Cadernos' nav item intact (the overlay is an ADDITIONAL surface, not a replacement).",
+    "Extract any pure geometry/clamping math (e.g. clampPosition, computeResize for a given direction + delta + min bounds) into a small pure helper (e.g. src/features/notebook/overlayGeometry.ts) so it is unit-testable without the DOM, mirroring how dashboard geometry helpers are factored.",
+    "Add unit tests for the overlay geometry helpers under src/features/notebook/__tests__/ (new directory if needed): cover drag position clamping to the viewport margin, and resize math for e/w/n/s/corner directions respecting min width/height (and that west/north resizes also move the top-left origin). Follow the vitest style of src/features/dashboard/__tests__/helpers.test.ts.",
+    "Do NOT introduce new lint warnings. NotebookPage.tsx already has 2 pre-existing warnings (lines 42, 52); if you refactor shared logic out of it, do not add more warnings and ideally leave those lines as-is unless cleanly improved."
+  ],
+  "acceptance_criteria": [
+    "A new NotebookOverlay component renders a floating panel that can be dragged around the screen by its header (pointer events) and resized from its edges and corners, with enforced min size and on-screen clamping.",
+    "The overlay reuses the existing src/features/notebook/api.ts hooks and @/types/db types - no new data layer, no reference-repo tables, no Tailwind.",
+    "A floating toggle button on the dashboard opens/closes the overlay; the dashboard remains interactive while the overlay is open (non-modal floating panel).",
+    "The existing /notebook full page and the 'Cadernos' sidebar nav item still work unchanged.",
+    "Pure geometry helpers for drag-clamp and resize are extracted and covered by new vitest unit tests.",
+    "npm run build passes; typecheck passes; lint has no NEW warnings beyond the 6 pre-existing; npm run test passes including the new overlay-geometry tests."
+  ],
+  "verification": [
+    "Run 'npm run build' (authoritative) and confirm green.",
+    "Run 'npm run typecheck', 'npm run lint' (no new warnings), 'npm run test' (all pass, new overlay geometry tests included).",
+    "Code review: confirm the overlay uses our notebook api hooks + CSS-var styling (no Tailwind, no reference imports), is draggable + resizable via pointer events, is launched from a dashboard toggle, and that the /notebook page + 'Cadernos' nav remain intact."
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

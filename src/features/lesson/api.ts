@@ -14,6 +14,7 @@
 import {
   useMutation,
   useQuery,
+  useQueryClient,
   type UseQueryResult,
 } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
@@ -216,11 +217,26 @@ export interface FinalizeInput {
 }
 
 export function useFinalizeLesson() {
+  const qc = useQueryClient();
   return useMutation<AttemptResult, Error, FinalizeInput>({
     mutationFn: async ({ userId, lessonId, context, entries }) => {
       const attempt = await startAttempt(userId, lessonId, context);
       await submitAnswers(attempt.id, entries);
       return finalizeAttempt(attempt.id);
+    },
+    // finalize_attempt is server-authoritative: it inserts the completion,
+    // updates progress and (course context) global XP/level. We never toggle a
+    // local fake-completion flag; instead we invalidate the server-backed
+    // queries so the dashboard trail (completed node + next unlock) and the
+    // lesson progress refetch and visually update with no manual reload.
+    onSuccess: (_result, { lessonId, userId }) => {
+      // Invalidate by the stable ['dashboard'] prefix so BOTH the active course
+      // trail (dashboardKeys.trail) and the overview (dashboardKeys.overview)
+      // refetch, regardless of the specific course/user key.
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+      qc.invalidateQueries({
+        queryKey: lessonKeys.progress(lessonId, userId),
+      });
     },
   });
 }

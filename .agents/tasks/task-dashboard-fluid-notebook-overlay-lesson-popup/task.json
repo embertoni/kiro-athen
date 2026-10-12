@@ -1,0 +1,7 @@
+{
+  "task_id": "task-dashboard-fluid-notebook-overlay-lesson-popup",
+  "task_description": "Iterate the Athen dashboard to be more fluid and visually nicer (inspired by the sprint03 reference repo), turn the notebook into a draggable + resizable floating overlay that sits over the page, make available lesson nodes open a pop-up modal (instead of navigating to a standalone page), ensure a finalized lesson auto-updates the trail's visual state via react-query invalidation, and fix the Salas room_members/rooms RLS infinite-recursion error (42P17) with a new SECURITY DEFINER-based migration (0020) plus docs. All on a new feature branch off main; no push/PR (orchestrator handles that).",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}

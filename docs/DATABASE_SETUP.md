@@ -47,7 +47,7 @@ O banco e **totalmente reproduzivel a partir dos arquivos SQL ordenados** em
 objetos criados antes (enums, FKs, funcoes, policies). Aplique sempre na ordem
 do nome do arquivo.
 
-O conjunto atual de migracoes neste repositorio e `0001_` ate `0019_`:
+O conjunto atual de migracoes neste repositorio e `0001_` ate `0020_`:
 
 | Arquivo                                             | Conteudo (resumo)                                        |
 | --------------------------------------------------- | -------------------------------------------------------- |
@@ -70,9 +70,10 @@ O conjunto atual de migracoes neste repositorio e `0001_` ate `0019_`:
 | `0017_enroll_own_course.sql`                        | self-enroll no proprio curso (ver secao 3)               |
 | `0018_no_xp_for_already_correct.sql`                | anti-regrind de XP (ver secao 3)                         |
 | `0019_course_edit_gating.sql`                       | gating de edicao de curso + `published_at` (ver secao 3) |
+| `0020_fix_room_members_rls_recursion.sql`           | corrige recursao de RLS em salas (42P17) (ver secao 3)   |
 
 > O `README.md` e o `supabase/README.md` ainda citam faixas antigas (ate `0015`
-> / `0016`). A faixa real e correta e `0001` -> `0019`.
+> / `0016`). A faixa real e correta e `0001` -> `0020`.
 
 ### Opcao A: Supabase CLI (recomendada)
 
@@ -96,7 +97,7 @@ confirmacao de email no stack local.
 ### Opcao B: SQL editor (fallback)
 
 Abra cada arquivo de `supabase/migrations/` **na ordem do nome** (`0001_` ->
-`0019_`) e execute o conteudo no SQL editor do Supabase, um de cada vez, do
+`0020_`) e execute o conteudo no SQL editor do Supabase, um de cada vez, do
 menor para o maior. Nao pule nenhum e nao altere a ordem.
 
 ## 3. Migracoes recentes que a pagina atual depende
@@ -146,6 +147,47 @@ Comportamento resultante (com `public.is_admin()` sobrepondo tudo):
   na publicacao e **imutavel**: sem UPDATE e sem DELETE, e sem INSERT de
   aulas/questoes sob modulos anteriores a publicacao.
 
+### `0020_fix_room_members_rls_recursion.sql`: recursao de RLS em salas
+
+Corrige o erro visto na pagina de Salas: **"infinite recursion detected in
+policy for relation room_members [42P17]"**. A causa raiz esta nas policies de
+`0011` (ajustadas por `0015`):
+
+- `rooms_select` tinha um `exists (select 1 from room_members ...)` **inline**;
+  ler `room_members` ali dispara a RLS de `room_members`.
+- `room_members_select` tinha um `exists (select 1 from rooms ...)` **inline**;
+  ler `rooms` ali dispara a RLS de `rooms`.
+
+Cada subconsulta cruzada reentra na policy da **outra** tabela, que reentra na
+primeira. O Postgres detecta o ciclo e aborta com `42P17`.
+
+A `0020` quebra o ciclo com funcoes **SECURITY DEFINER** (que rodam com os
+direitos do dono e **ignoram a RLS do chamador**), no mesmo estilo de
+`public.is_admin()` (`0010`) e `public.is_active_room_member()` (`0015`):
+
+- `public.is_room_member(p_room_id, p_user_id)`: verdadeiro quando o usuario e
+  membro ativo da sala.
+- `public.is_room_educator(p_room_id, p_user_id default auth.uid())`: verdadeiro
+  quando o usuario e o educador (dono) da sala.
+
+Em seguida reescreve `rooms_select` e `room_members_select` (via
+`drop policy if exists` + `create policy`, logo e re-executavel) para chamarem
+as funcoes em vez do `exists` cruzado, preservando o comportamento. Por
+consistencia defensiva, as leituras de `room_members` em `announcements_select`
+e `missions_select` tambem passam a usar `public.is_room_member()` (mesma
+informacao de membresia; essas policies nao fazem parte do ciclo
+rooms <-> room_members). Aplique **na ordem**, depois da `0019`.
+
+> **Nao requer regeneracao de tipos.** A `0020` altera apenas **policies** e
+> **funcoes** (nenhuma coluna, tabela, enum ou view nova), entao o shape do tipo
+> `Database` gerado nao muda. **Nao e necessario** regenerar
+> `src/types/database.ts` por causa da `0020`.
+>
+> **Nao executada no sandbox.** Como as demais migracoes, a `0020` nao pode ser
+> executada ou verificada aqui (nao ha Supabase ao vivo). Foi validada apenas
+> por revisao estrutural/logica e **precisa ser aplicada e verificada por um
+> humano** contra um banco real.
+
 ## 4. Regenerar os tipos TypeScript apos a `0019`
 
 A `0019` adiciona a coluna `courses.published_at`, o que muda o shape do tipo
@@ -194,12 +236,15 @@ supabase gen types typescript --local > src/types/database.ts
 
 1. `.env.local` preenchido com `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`
    (e as mesmas variaveis definidas na Vercel).
-2. Migracoes `0001` -> `0019` aplicadas em ordem (`supabase db reset` /
+2. Migracoes `0001` -> `0020` aplicadas em ordem (`supabase db reset` /
    `supabase db push`, ou SQL editor em ordem) sem erro.
-3. Tipos regenerados com `supabase gen types` apos a `0019`.
+3. Tipos regenerados com `supabase gen types` apos a `0019` (a `0020` nao muda
+   o tipo `Database`, entao nao exige nova regeneracao).
 4. Exercitar manualmente o que depende de RLS/triggers/funcoes SQL: criar curso
    (rascunho totalmente editavel), publicar, confirmar que o curso publicado so
    aceita novos modulos e que o conteudo anterior fica imutavel; matricular-se
    no proprio curso; confirmar que respostas ja corretas nao concedem XP de
-   novo. Esses fluxos **nao sao reproduziveis no sandbox** e precisam de um
-   banco real.
+   novo. Abrir a pagina de **Salas** e confirmar que a lista carrega sem o erro
+   `42P17` (recursao de RLS em `room_members`), tanto como educador quanto como
+   membro ativo. Esses fluxos **nao sao reproduziveis no sandbox** e precisam de
+   um banco real.
