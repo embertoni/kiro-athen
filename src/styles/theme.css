@@ -459,6 +459,38 @@ button {
 }
 
 /*
+ * Reusable custom vertical scrollbar for modal/pop-up content areas (e.g. the
+ * lesson pop-up). Long content wraps instead of scrolling sideways
+ * (overflow-x: hidden) and vertical overflow scrolls with a brand-styled
+ * scrollbar matching the page design.
+ */
+.modal-scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-purple) transparent;
+}
+
+.modal-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.modal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb {
+  background: var(--brand-purple);
+  border-radius: 999px;
+  border: 2px solid var(--color-surface);
+}
+
+.modal-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-purple-dark);
+}
+
+/*
  * The trail track is a POSITIONED canvas: nodes are absolutely placed along a
  * repeating per-module wave (TSX sets each node's inline left/top from the
  * geometry helpers). Its explicit width/height are set inline from the computed

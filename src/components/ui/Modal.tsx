@@ -118,7 +118,9 @@ export function Modal({
             &times;
           </button>
         </header>
-        <div style={{ padding: '1.25rem', overflowY: 'auto' }}>{children}</div>
+        <div className="modal-scroll" style={{ padding: '1.25rem' }}>
+          {children}
+        </div>
         {footer && (
           <footer
             style={{
