@@ -7,9 +7,11 @@
     fill-rule="evenodd"
     d="M32 2a30 30 0 1 0 0 60 30 30 0 0 1 0-60zM41 10a24.5 24.5 0 1 1 0 44 29.5 29.5 0 0 0 0-44z"
   />
-  <!-- Thin background-colored ring so the crescent inner edge and gold circle
-       read as distinct shapes. -->
-  <circle cx="41" cy="34" r="17.5" fill="#ffffff" />
+  <!-- No painted gap ring here: a standalone favicon cannot resolve the
+       app's --color-surface CSS variable, and a literal #ffffff ring would
+       show as a white sliver on dark surfaces. The crescent's carved-out
+       inner disc already leaves a transparent seam around the gold circle,
+       so the two shapes read as distinct on any backdrop. -->
   <!-- Gold/yellow filled circle nested in the crescent's opening. -->
   <circle cx="41" cy="34" r="15.5" fill="#FFC107" />
   <!-- Small downward-pointing purple triangle in the upper-right quadrant. -->
