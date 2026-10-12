@@ -23,6 +23,7 @@ import {
   useDeletePage,
   useNotebookPages,
   useNotebooks,
+  useRenameNotebook,
   useReorderPage,
   useSavePage,
 } from './api';
@@ -35,9 +36,38 @@ export function NotebookPage() {
   const notebooksQuery = useNotebooks(userId);
   const createNotebook = useCreateNotebook(userId);
   const deleteNotebook = useDeleteNotebook(userId);
+  const renameNotebook = useRenameNotebook(userId);
 
   const [notebookId, setNotebookId] = useState<string | null>(null);
   const [pageId, setPageId] = useState<string | null>(null);
+
+  // Inline rename state for the notebook list (local-only; the rename mutation
+  // invalidates notebookKeys.list on success so the list refetches itself).
+  const [editingNotebookId, setEditingNotebookId] = useState<string | null>(
+    null,
+  );
+  const [draftTitle, setDraftTitle] = useState('');
+
+  function startEditingNotebook(id: string, title: string) {
+    setEditingNotebookId(id);
+    setDraftTitle(title);
+  }
+
+  function cancelEditingNotebook() {
+    setEditingNotebookId(null);
+    setDraftTitle('');
+  }
+
+  async function saveNotebookName(id: string) {
+    try {
+      await renameNotebook.mutateAsync({ id, title: draftTitle });
+      toast.success('Caderno renomeado.');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao renomear.');
+    } finally {
+      cancelEditingNotebook();
+    }
+  }
 
   const notebooks = notebooksQuery.data ?? [];
 
@@ -69,6 +99,8 @@ export function NotebookPage() {
     try {
       const nb = await createNotebook.mutateAsync('Novo caderno');
       setNotebookId(nb.id);
+      // Immediately enter inline-edit so the user can name it at creation.
+      startEditingNotebook(nb.id, nb.title);
       toast.success('Caderno criado.');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro.');
@@ -169,50 +201,114 @@ export function NotebookPage() {
               <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>
                 Cadernos
               </span>
-              {notebooks.map((nb) => (
-                <div
-                  key={nb.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setNotebookId(nb.id)}
+              {notebooks.map((nb) =>
+                editingNotebookId === nb.id ? (
+                  <div
+                    key={nb.id}
                     style={{
-                      flex: 1,
-                      textAlign: 'left',
-                      padding: '0.45rem 0.6rem',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-border)',
-                      background:
-                        nb.id === notebookId
-                          ? 'var(--brand-purple)'
-                          : 'var(--color-surface)',
-                      color: nb.id === notebookId ? '#fff' : 'inherit',
-                      cursor: 'pointer',
-                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.3rem',
                     }}
                   >
-                    {nb.title}
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={`Excluir caderno ${nb.title}`}
-                    onClick={() => handleDeleteNotebook(nb.id)}
+                    <div style={{ flex: 1 }}>
+                      <Input
+                        aria-label={`Nome do caderno ${nb.title}`}
+                        value={draftTitle}
+                        autoFocus
+                        onChange={(e) => setDraftTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveNotebookName(nb.id);
+                          if (e.key === 'Escape') cancelEditingNotebook();
+                        }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Salvar nome do caderno"
+                      onClick={() => saveNotebookName(nb.id)}
+                      disabled={renameNotebook.isPending}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'var(--brand-purple)',
+                      }}
+                    >
+                      ✔
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Cancelar edição do nome"
+                      onClick={cancelEditingNotebook}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'var(--color-text-muted)',
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    key={nb.id}
                     style={{
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: 'var(--color-text-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.3rem',
                     }}
                   >
-                    🗑
-                  </button>
-                </div>
-              ))}
+                    <button
+                      type="button"
+                      onClick={() => setNotebookId(nb.id)}
+                      style={{
+                        flex: 1,
+                        textAlign: 'left',
+                        padding: '0.45rem 0.6rem',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--color-border)',
+                        background:
+                          nb.id === notebookId
+                            ? 'var(--brand-purple)'
+                            : 'var(--color-surface)',
+                        color: nb.id === notebookId ? '#fff' : 'inherit',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {nb.title}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Renomear caderno ${nb.title}`}
+                      onClick={() => startEditingNotebook(nb.id, nb.title)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'var(--color-text-muted)',
+                      }}
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Excluir caderno ${nb.title}`}
+                      onClick={() => handleDeleteNotebook(nb.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'var(--color-text-muted)',
+                      }}
+                    >
+                      🗑
+                    </button>
+                  </div>
+                ),
+              )}
             </div>
 
             {notebookId && (

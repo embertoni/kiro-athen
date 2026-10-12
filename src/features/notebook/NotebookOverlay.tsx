@@ -28,6 +28,7 @@ import {
   useDeletePage,
   useNotebookPages,
   useNotebooks,
+  useRenameNotebook,
   useSavePage,
 } from './api';
 import {
@@ -61,9 +62,17 @@ export function NotebookOverlay({ onClose }: NotebookOverlayProps) {
   const notebooksQuery = useNotebooks(userId);
   const createNotebook = useCreateNotebook(userId);
   const deleteNotebook = useDeleteNotebook(userId);
+  const renameNotebook = useRenameNotebook(userId);
 
   const [notebookId, setNotebookId] = useState<string | null>(null);
   const [pageId, setPageId] = useState<string | null>(null);
+
+  // Inline rename state for the selected notebook (local-only; the rename
+  // mutation invalidates notebookKeys.list on success so the picker refreshes).
+  const [editingNotebookId, setEditingNotebookId] = useState<string | null>(
+    null,
+  );
+  const [draftTitle, setDraftTitle] = useState('');
 
   const notebooks = useMemo(
     () => notebooksQuery.data ?? [],
@@ -202,10 +211,33 @@ export function NotebookOverlay({ onClose }: NotebookOverlayProps) {
   }
 
   // ----- Data operations (reusing the same hooks as NotebookPage) -----
+  function startEditingNotebook(id: string, title: string) {
+    setEditingNotebookId(id);
+    setDraftTitle(title);
+  }
+
+  function cancelEditingNotebook() {
+    setEditingNotebookId(null);
+    setDraftTitle('');
+  }
+
+  async function saveNotebookName(id: string) {
+    try {
+      await renameNotebook.mutateAsync({ id, title: draftTitle });
+      toast.success('Caderno renomeado.');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao renomear.');
+    } finally {
+      cancelEditingNotebook();
+    }
+  }
+
   async function handleCreateNotebook() {
     try {
       const nb = await createNotebook.mutateAsync('Novo caderno');
       setNotebookId(nb.id);
+      // Immediately enter inline-edit so the user can name it at creation.
+      startEditingNotebook(nb.id, nb.title);
       toast.success('Caderno criado.');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro.');
@@ -285,39 +317,90 @@ export function NotebookOverlay({ onClose }: NotebookOverlayProps) {
           </ErrorText>
         )}
 
-        {/* Notebook picker + create */}
-        <div className="nb-overlay__row">
-          <select
-            className="nb-overlay__select"
-            aria-label="Selecionar caderno"
-            value={notebookId ?? ''}
-            onChange={(e) => setNotebookId(e.target.value || null)}
-          >
-            {notebooks.length === 0 && <option value="">Sem cadernos</option>}
-            {notebooks.map((nb) => (
-              <option key={nb.id} value={nb.id}>
-                {nb.title}
-              </option>
-            ))}
-          </select>
-          <Button
-            size="sm"
-            onClick={handleCreateNotebook}
-            loading={createNotebook.isPending}
-          >
-            + Caderno
-          </Button>
-          {notebookId && (
+        {/* Notebook picker + create (or inline rename of the selected one) */}
+        {notebookId && editingNotebookId === notebookId ? (
+          <div className="nb-overlay__row">
+            <input
+              className="nb-overlay__select"
+              style={{ flex: 1 }}
+              aria-label="Novo nome do caderno"
+              value={draftTitle}
+              autoFocus
+              onChange={(e) => setDraftTitle(e.target.value)}
+              onPointerDown={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') saveNotebookName(notebookId);
+                if (e.key === 'Escape') cancelEditingNotebook();
+              }}
+            />
+            <Button
+              size="sm"
+              aria-label="Salvar nome do caderno"
+              onClick={() => saveNotebookName(notebookId)}
+              loading={renameNotebook.isPending}
+            >
+              ✔
+            </Button>
             <Button
               size="sm"
               variant="ghost"
-              aria-label="Excluir caderno atual"
-              onClick={() => handleDeleteNotebook(notebookId)}
+              aria-label="Cancelar edição do nome"
+              onClick={cancelEditingNotebook}
             >
-              🗑
+              ✕
             </Button>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="nb-overlay__row">
+            <select
+              className="nb-overlay__select"
+              aria-label="Selecionar caderno"
+              value={notebookId ?? ''}
+              onChange={(e) => setNotebookId(e.target.value || null)}
+            >
+              {notebooks.length === 0 && <option value="">Sem cadernos</option>}
+              {notebooks.map((nb) => (
+                <option key={nb.id} value={nb.id}>
+                  {nb.title}
+                </option>
+              ))}
+            </select>
+            <Button
+              size="sm"
+              onClick={handleCreateNotebook}
+              loading={createNotebook.isPending}
+            >
+              + Caderno
+            </Button>
+            {notebookId && (
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-label={`Renomear caderno ${
+                  notebooks.find((nb) => nb.id === notebookId)?.title ?? ''
+                }`}
+                onClick={() =>
+                  startEditingNotebook(
+                    notebookId,
+                    notebooks.find((nb) => nb.id === notebookId)?.title ?? '',
+                  )
+                }
+              >
+                ✏️
+              </Button>
+            )}
+            {notebookId && (
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-label="Excluir caderno atual"
+                onClick={() => handleDeleteNotebook(notebookId)}
+              >
+                🗑
+              </Button>
+            )}
+          </div>
+        )}
 
         {/* Page tabs */}
         {notebookId && (
