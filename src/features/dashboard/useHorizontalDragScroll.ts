@@ -44,6 +44,9 @@ export function useHorizontalDragScroll(
       const dx = e.clientX - state.current.startX;
       // Only hijack once the drag is meaningful, so clicks still register.
       if (Math.abs(dx) < 4) return;
+      // Past the threshold this is a real drag: suppress native text selection
+      // so panning never highlights node titles/icons, then pan the trail.
+      e.preventDefault();
       el.scrollLeft = state.current.startScroll - dx;
     },
     [ref],

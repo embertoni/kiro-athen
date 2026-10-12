@@ -7,27 +7,29 @@ interface LogoProps {
 }
 
 /**
- * Athen brand mark rendered inline as SVG: a purple crescent moon (#5B2A86)
- * wrapping a gold circle (#FFC107) that contains a small downward-pointing
- * purple triangle. Mirrors public/athen-logo.svg (the favicon).
+ * Athen brand mark: the official logo PNG (public/athen-logo.png), a swooping
+ * purple crescent/hook with a gold circle nested at the lower-right of its
+ * opening and a small downward-pointing purple triangle inside the circle.
+ * Rendered as a square <img> so it drops in wherever the mark is used (sidebar
+ * brand, landing hero). When title === '' the image is decorative.
  */
 export function Logo({ size = 32, title = 'Athen', className }: LogoProps) {
   const isDecorative = title === '';
   return (
-    <svg
+    <img
+      src="/athen-logo.png"
       width={size}
       height={size}
-      viewBox="0 0 64 64"
       className={className}
-      role={isDecorative ? undefined : 'img'}
+      alt={isDecorative ? '' : title}
       aria-hidden={isDecorative ? true : undefined}
-      aria-label={isDecorative ? undefined : title}
-    >
-      {!isDecorative && <title>{title}</title>}
-      <path fill="#5B2A86" d="M32 2a30 30 0 1 0 0 60 30 30 0 0 1 0-60z" />
-      <circle cx="38" cy="32" r="17" fill="#FFC107" />
-      <path fill="#5B2A86" d="M31 25h14l-7 12z" />
-    </svg>
+      style={{
+        width: size,
+        height: size,
+        objectFit: 'contain',
+        display: 'block',
+      }}
+    />
   );
 }
 

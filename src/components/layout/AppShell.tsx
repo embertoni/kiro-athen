@@ -110,8 +110,8 @@ export function AppShell() {
           aria-label="Athen - ir para o painel"
           className="app-shell__brand"
         >
-          <BrandMark size={30} />
-          <span className="app-shell__brand-name">Athen</span>
+          <BrandMark size={30} hideWordmark />
+          <span className="app-shell__brand-name">athen</span>
         </NavLink>
 
         {/* Primary navigation */}

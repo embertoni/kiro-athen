@@ -88,6 +88,7 @@ export function MultipleChoiceQuestion({
               border: `1px solid ${checked ? 'var(--brand-purple)' : 'var(--color-border)'}`,
               background: checked ? 'rgba(91, 42, 134, 0.06)' : 'transparent',
               cursor: disabled ? 'default' : 'pointer',
+              minWidth: 0,
             }}
           >
             <input
@@ -97,7 +98,15 @@ export function MultipleChoiceQuestion({
               disabled={disabled}
               onChange={() => toggle(opt.id)}
             />
-            <span>{opt.text}</span>
+            <span
+              style={{
+                minWidth: 0,
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
+              }}
+            >
+              {opt.text}
+            </span>
           </label>
         );
       })}
@@ -170,6 +179,7 @@ export function SumAlternativesQuestion({
               borderRadius: 'var(--radius-md)',
               border: `1px solid ${checked ? 'var(--brand-purple)' : 'var(--color-border)'}`,
               cursor: disabled ? 'default' : 'pointer',
+              minWidth: 0,
             }}
           >
             <input
@@ -252,9 +262,23 @@ export function MatchQuestion({
       {config.pairs.map((p) => (
         <div
           key={p.left}
-          style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+          style={{
+            display: 'flex',
+            gap: '0.5rem',
+            alignItems: 'center',
+            minWidth: 0,
+          }}
         >
-          <span style={{ flex: 1 }}>{p.left}</span>
+          <span
+            style={{
+              flex: 1,
+              minWidth: 0,
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
+            }}
+          >
+            {p.left}
+          </span>
           <select
             value={current.get(p.left) ?? ''}
             disabled={disabled}

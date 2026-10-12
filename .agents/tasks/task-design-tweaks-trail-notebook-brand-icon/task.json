@@ -1,0 +1,14 @@
+{
+  "task_id": "task-design-tweaks-trail-notebook-brand-icon",
+  "task_description": "Five targeted frontend design tweaks to the Athen app: (1) dashboard trail drag pans without selecting text and hides the horizontal scrollbar while keeping drag+wheel pan; (2) lesson pop-up long text wraps/width-constrained with no horizontal scrollbar and a custom-styled vertical scrollbar; (3) notebooks renamable during and after creation via an edit button, reusing the existing useRenameNotebook mutation; (4) sidebar brand shows a single lowercase 'athen' next to the icon, centered (fix 'Athen Athen' duplication); (5) corrected app icon (faithful vector re-creation of the attached reference) wired in everywhere (favicon file + inline Logo). Frontend-only; no migrations/type changes; no Tailwind; CSS via theme.css.",
+  "status": "completed",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004", "FEAT-005"],
+  "blocked_reason": null,
+  "verification": {
+    "build": "pass",
+    "tests": "pass",
+    "test_quality": "pass",
+    "docker_build": "skipped",
+    "summary": "On branch feat/design-tweaks-trail-notebook-brand-icon (5 commits off main @ 89ac0a8). npm run typecheck clean; npm run lint has exactly the 5 pre-existing warnings and no new ones; npm run test = 208/208 passed; npm run build succeeds and emits dist/athen-logo.svg. No Dockerfile in repo so docker_build skipped. test_quality: this task is CSS/markup/SVG-heavy with no new extractable pure logic; no new tests were added, which is appropriate - existing 208 tests (incl. dashboard drag/geometry helper tests) still pass and cover untouched logic. All source changes are frontend-only (no supabase/migrations, no src/types/*)."
+  }
+}

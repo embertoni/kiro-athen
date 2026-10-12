@@ -192,7 +192,15 @@ export function LessonRunner({
             </span>
           )}
         </p>
-        <h1 style={{ margin: '0.2rem 0 0', color: 'var(--brand-purple)' }}>
+        <h1
+          style={{
+            margin: '0.2rem 0 0',
+            color: 'var(--brand-purple)',
+            overflowWrap: 'break-word',
+            wordBreak: 'break-word',
+            maxWidth: '100%',
+          }}
+        >
           {data.lesson.title}
         </h1>
       </header>
@@ -201,6 +209,9 @@ export function LessonRunner({
         <section
           style={{
             whiteSpace: 'pre-wrap',
+            overflowWrap: 'break-word',
+            wordBreak: 'break-word',
+            maxWidth: '100%',
             lineHeight: 1.6,
             marginBottom: '1.5rem',
           }}
@@ -221,6 +232,8 @@ export function LessonRunner({
             padding: 0,
             display: 'grid',
             gap: '1.25rem',
+            minWidth: 0,
+            maxWidth: '100%',
           }}
         >
           {questions.map((q, index) => (
@@ -324,7 +337,15 @@ function QuestionItem({
 }: QuestionItemProps) {
   const disabled = result !== null;
   const header = (
-    <p style={{ margin: '0 0 0.5rem', fontWeight: 600 }}>
+    <p
+      style={{
+        margin: '0 0 0.5rem',
+        fontWeight: 600,
+        overflowWrap: 'break-word',
+        wordBreak: 'break-word',
+        maxWidth: '100%',
+      }}
+    >
       {index + 1}. {question.prompt}
     </p>
   );
@@ -381,6 +402,8 @@ function QuestionItem({
         border: '1px solid var(--color-border)',
         borderRadius: 'var(--radius-md)',
         padding: '0.9rem 1rem',
+        minWidth: 0,
+        maxWidth: '100%',
       }}
     >
       {header}

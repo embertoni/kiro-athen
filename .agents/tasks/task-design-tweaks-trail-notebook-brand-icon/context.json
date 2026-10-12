@@ -1,0 +1,32 @@
+{
+  "project_type": "React 18 + TypeScript + Vite 7 SPA (Athen learning platform), Supabase backend",
+  "language": "TypeScript / TSX",
+  "build_system": "npm + Vite 7. node/npm may need: export PATH=\"/opt/toolchains/.nvm/versions/node/v22.23.3/bin:$PATH\". Verified node v22.23.3.",
+  "test_framework": "vitest (vitest run). Existing unit tests live under src/features/**/__tests__/*.test.ts and cover pure helper logic.",
+  "build_command": "npm run build  (runs: tsc -b && vite build — this is the authoritative Vercel check; verified GREEN at baseline on commit 89ac0a8)",
+  "test_command": "npm run test  (vitest run); also npm run typecheck (tsc --noEmit), npm run lint (eslint .)",
+  "verification_instructions": "Run in order: npm run typecheck, npm run lint (NO NEW warnings; a few pre-existing warnings exist in untouched files), npm run test, npm run build. Build must be clean. Much of this task is CSS/markup and only visually verifiable without a live browser.",
+  "snapshot_or_generated_files": "dist/ is build output (gitignored-ish, not reviewed). src/types/database.ts is generated and MUST NOT be edited. No snapshot test fixtures relevant here.",
+  "setup_instructions": "Dependencies already installed in node_modules. If node missing: export PATH=\"/opt/toolchains/.nvm/versions/node/v22.23.3/bin:$PATH\". Working on a NEW feature branch off main (do NOT commit on main).",
+  "environment_constraints": "OPEN_INTERNET. No live browser for visual verification. Do NOT push or open a PR (orchestrator handles publish). Ignore the parked git stash@{0}.",
+  "contribution_requirements": "Frontend-only task. Do NOT touch supabase/migrations, src/types/database.ts, or src/types/db.ts. No new backend/data-layer schema changes. Styling via CSS custom properties in src/styles/theme.css (NOT Tailwind). Do NOT import anything from the reference repo _ref-athen. Keep lint clean with no new warnings.",
+  "key_patterns": "Many components use inline styles (Modal.tsx, LessonRunner.tsx, question components, Input.tsx). The dashboard + brand use CSS classes in src/styles/theme.css (prefixes: .dash__*, .app-shell__*, .nb-overlay*). Brand purple = var(--brand-purple) (#5b2a86 light / #a877dd dark). Gold used in logo = #FFC107. Data access via @tanstack/react-query hooks in feature api.ts files; mutations invalidate query keys on success. useRenameNotebook ALREADY EXISTS in src/features/notebook/api.ts (reuse it). UI primitives: src/components/ui/{Button,Input,Modal,Spinner,ErrorText}.tsx.",
+  "relevant_files": [
+    "src/features/dashboard/DashboardPage.tsx (trail container .dash__trail bound to trailRef, spreads dragHandlers; lesson Modal host)",
+    "src/features/dashboard/useHorizontalDragScroll.ts (drag/wheel hook; 4px click-vs-drag threshold at line ~59)",
+    "src/styles/theme.css (.dash__trail ~line 393, .app-shell__brand ~line 112, .app-shell__brand-name ~line 124; .dash__module-title/.dash__lesson node styles)",
+    "src/components/ui/Modal.tsx (shared modal; inline-styled; content area is <div style={{ padding:'1.25rem', overflowY:'auto' }}>)",
+    "src/features/lesson/LessonRunner.tsx (lesson pop-up body: header/content <section whiteSpace:pre-wrap>/questions/footer, inline styled)",
+    "src/features/lesson/questions/QuestionComponents.tsx (question prompt + inputs; prompt rendered in LessonRunner QuestionItem header)",
+    "src/features/notebook/api.ts (useRenameNotebook EXISTS, useCreateNotebook, notebookKeys)",
+    "src/features/notebook/NotebookPage.tsx (full /notebook page; notebook list buttons + delete)",
+    "src/features/notebook/NotebookOverlay.tsx (floating overlay; notebook <select> picker + create/delete)",
+    "src/components/layout/AppShell.tsx (sidebar brand: <BrandMark size={30} /> + <span className=app-shell__brand-name>Athen</span>)",
+    "src/components/brand/BrandMark.tsx (Logo + optional 'Athen' wordmark; supports hideWordmark)",
+    "src/components/brand/Logo.tsx (inline SVG mark; mirrors public/athen-logo.svg)",
+    "public/athen-logo.svg (favicon, referenced by index.html)",
+    "src/features/landing/LandingPage.tsx (uses BrandMark size=36 + Logo size=96 — do NOT lowercase these)",
+    "src/features/auth/AuthCard.tsx + src/routes/NotFoundPage.tsx (use BrandMark with wordmark — leave 'Athen')"
+  ],
+  "directory_structure": "src/features/<domain>/ with api.ts + page/component .tsx + __tests__/; src/components/{ui,brand,layout}; src/styles/theme.css is the single global stylesheet; public/ holds static assets incl. athen-logo.svg favicon."
+}

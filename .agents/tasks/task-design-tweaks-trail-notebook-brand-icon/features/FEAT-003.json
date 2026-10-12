@@ -1,0 +1,27 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Lesson pop-up long-text overflow (user_instruction change 2). The question enunciado/prompt and other long texts must be constrained to the modal/window width, wrap automatically (including long unbroken tokens), and NEVER produce a horizontal scrollbar. Vertical overflow must scroll with a CUSTOM-styled scrollbar matching the page design (brand colors / theme vars). Scope: src/components/ui/Modal.tsx (content area), src/features/lesson/LessonRunner.tsx (header title, content section, question list), src/features/lesson/questions/QuestionComponents.tsx (prompt text + option labels), and new CSS in src/styles/theme.css.",
+  "status": "completed",
+  "steps": [
+    "Add a reusable CSS class in src/styles/theme.css (e.g. .modal-scroll) that styles a vertical custom scrollbar: for WebKit use ::-webkit-scrollbar { width: 10px; }, ::-webkit-scrollbar-track { background: transparent; }, ::-webkit-scrollbar-thumb { background: var(--brand-purple); border-radius: 999px; border: 2px solid var(--color-surface); } and a hover variant; for Firefox add scrollbar-width: thin; scrollbar-color: var(--brand-purple) transparent;. Also set overflow-x: hidden on this class so no horizontal scrollbar can appear, and overflow-y: auto for vertical scrolling.",
+    "In src/components/ui/Modal.tsx, apply this scroll class to the content <div> that currently uses style={{ padding:'1.25rem', overflowY:'auto' }} (add className=\"modal-scroll\" and change overflowY to be governed by the class, keeping maxHeight behavior via the existing 90vh dialog cap). Ensure overflow-x hidden so long content wraps instead of scrolling sideways. Keep the dialog's existing inline layout otherwise intact.",
+    "In src/features/lesson/LessonRunner.tsx, make long text wrap and width-constrained: on the lesson title <h1> and the content <section> (currently whiteSpace:'pre-wrap') add overflowWrap:'break-word', wordBreak:'break-word', and maxWidth:'100%'. Ensure the questions <ol> and QuestionItem containers also constrain width (minWidth:0 / maxWidth:100% as needed) so a long token cannot force horizontal overflow.",
+    "In src/features/lesson/LessonRunner.tsx QuestionItem header (the <p> rendering `${index+1}. ${question.prompt}`) add overflowWrap:'break-word' and wordBreak:'break-word' so long enunciados wrap. Apply the same wrapping to option label text in src/features/lesson/questions/QuestionComponents.tsx (the MultipleChoice/SumAlternatives <label> spans and the Match left-item span) so long option strings wrap instead of overflowing — add overflowWrap/word-break and minWidth:0 where flin flex rows.",
+    "Verify there is no remaining source of horizontal scroll in the lesson modal (e.g. fixed-width children). The custom scrollbar must only appear for vertical overflow."
+  ],
+  "acceptance_criteria": [
+    "A reusable custom-scrollbar CSS class exists in theme.css styling ::-webkit-scrollbar(-thumb/-track) with brand/theme colors and scrollbar-width:thin + scrollbar-color for Firefox, with overflow-x hidden and overflow-y auto.",
+    "The Modal content area uses that class so the lesson pop-up uses the custom vertical scrollbar and never shows a horizontal scrollbar.",
+    "Long enunciado/prompt text and option labels wrap (overflow-wrap/word-break) and stay within the modal width; no horizontal scrollbar appears for long text.",
+    "No new TypeScript or eslint errors/warnings; existing lesson flow (answering, finalize, redo, close) is unchanged."
+  ],
+  "verification": [
+    "npm run typecheck exits 0",
+    "npm run lint reports no new warnings",
+    "npm run test exits 0 (existing lesson/question tests still pass)",
+    "npm run build exits 0"
+  ],
+  "blocked_reason": null,
+  "findings": "Files touched: src/styles/theme.css (new reusable .modal-scroll class: overflow-x:hidden; overflow-y:auto; Firefox scrollbar-width:thin + scrollbar-color:var(--brand-purple) transparent; WebKit ::-webkit-scrollbar width:10px, transparent track, var(--brand-purple) thumb with 999px radius + 2px solid var(--color-surface) border, and a :hover thumb using var(--brand-purple-dark)); src/components/ui/Modal.tsx (content div now uses className=\"modal-scroll\" and dropped inline overflowY so the class governs overflow — dialog still keeps maxHeight:90vh + overflow:hidden); src/features/lesson/LessonRunner.tsx (title h1, content section, questions ol, QuestionItem container, and QuestionItem header p all width-constrained with overflowWrap/wordBreak:break-word, maxWidth:100%, and minWidth:0 where applicable); src/features/lesson/questions/QuestionComponents.tsx (MultipleChoice label+span, SumAlternatives label, Match row+left span given minWidth:0 and overflowWrap/wordBreak so long options/left items wrap). Verification: npm run typecheck=0, npm run lint=5 pre-existing warnings only (QuestionComponents react-refresh warning shifted 277->301 from added lines but is the same pre-existing one; no new warnings), npm run test=208 passed, npm run build=0. Note: horizontal-scrollbar removal and the custom scrollbar styling are only fully verifiable visually in a browser; verified structurally via the CSS class + wrapping styles."
+}
