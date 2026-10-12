@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "Dashboard trail drag behavior (user_instruction change 1). Holding the left mouse button and dragging must pan the trail WITHOUT selecting node icons/texts, and the horizontal scrollbar must be invisible while drag AND mouse-wheel panning still work. Scope: src/features/dashboard/useHorizontalDragScroll.ts and the .dash__trail rules in src/styles/theme.css. Preserve the existing 4px click-vs-drag threshold so normal clicks on lesson nodes still open the lesson.",
-  "status": "pending",
+  "status": "completed",
   "steps": [
     "In src/styles/theme.css, in the .dash__trail rule (~line 393): add user-select: none plus -webkit-user-select: none; -ms-user-select: none; so dragging never text-selects the module titles/lesson icons. Keep overflow-x: auto and overflow-y: hidden (so wheel + programmatic scrollTo still pan) and keep cursor: grab / :active grabbing.",
     "In the same .dash__trail rule, HIDE the horizontal scrollbar cross-browser WITHOUT removing scrollability: add scrollbar-width: none; (Firefox) and -ms-overflow-style: none; (old Edge). Then add a .dash__trail::-webkit-scrollbar { display: none; } rule (Chrome/Safari). Do NOT change overflow so wheel + drag still pan.",
@@ -21,5 +21,5 @@
     "npm run build exits 0"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Files touched: (1) src/styles/theme.css .dash__trail rule — added user-select:none (+ -webkit-/-ms- prefixes) and hid the horizontal scrollbar via scrollbar-width:none and -ms-overflow-style:none, plus a new .dash__trail::-webkit-scrollbar{display:none} rule; kept overflow-x:auto, overflow-y:hidden, cursor:grab and :active grabbing untouched. (2) src/features/dashboard/useHorizontalDragScroll.ts onPointerMove — call e.preventDefault() once past the 4px threshold (before setting el.scrollLeft) so a real drag suppresses native text selection; the <4px early return is preserved so taps/clicks still register as clicks on lesson nodes; onWheel vertical->horizontal translation unchanged. (3) DashboardPage.tsx — no change needed: .dash__trail div is bound to trailRef and already spreads {...dragHandlers}; React's onPointerMove is non-passive so e.preventDefault() is effective. Verification: npm run typecheck exit 0; npm run lint exit 0 with exactly the 5 pre-existing warnings (Toast.tsx, AuthProvider.tsx, QuestionComponents.tsx, NotebookPage.tsx x2) and no new ones; npm run build exit 0. Note: scrollbar-hiding and drag-selection suppression are visual/interaction behaviors only verifiable in a browser; validated here via typecheck/lint/build only."
 }

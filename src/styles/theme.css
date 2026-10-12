@@ -397,6 +397,13 @@ button {
   overflow-x: auto;
   overflow-y: hidden;
   cursor: grab;
+  /* Dragging pans the trail; never let it text-select node titles/icons. */
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  /* Hide the horizontal scrollbar cross-browser without losing scrollability. */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge / IE */
   /*
    * Base background. The per-module gradient tint is painted on a separate,
    * keyed overlay layer (.dash__trail-tint) that cross-fades on module change,
@@ -440,6 +447,11 @@ button {
   .dash__trail-tint {
     animation: none;
   }
+}
+
+/* Hide the horizontal scrollbar in Chrome/Safari (overflow-x stays auto). */
+.dash__trail::-webkit-scrollbar {
+  display: none;
 }
 
 .dash__trail:active {
